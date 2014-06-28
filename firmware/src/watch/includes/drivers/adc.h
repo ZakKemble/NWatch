@@ -1,17 +1,17 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#ifndef WATCHFACE_H_
-#define WATCHFACE_H_
+#ifndef ADC_H_
+#define ADC_H_
 
-#include "typedefs.h"
+#define ADC_MAX 1023 // Max ADC value (10 bit = 1023)
 
-void watchface_setFace(watchFace_f);
-void watchface_loadFace(void);
+void adc_init(void);
+uint adc_read(byte);
 
-#endif /* WATCHFACE_H_ */
+#endif /* ADC_H_ */

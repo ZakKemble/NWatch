@@ -1,27 +1,14 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "common.h"
-#include "games/game1.h"
-#include "display.h"
-#include "draw.h"
-#include "devices/oled.h"
-#include "devices/buttons.h"
-#include "watchface.h"
-#include "devices/buzzer.h"
-#include "devices/led.h"
-#include "menu.h"
-#include "resources.h"
-#include "animation.h"
+
+#if COMPILE_GAME1
 
 #define PLATFORM_WIDTH	12
 #define PLATFORM_HEIGHT	4
@@ -51,9 +38,9 @@ static const byte ballImg[] PROGMEM ={
 	0x03,0x03,
 };
 
-static bool select(void);
-static bool down(void);
-static bool up(void);
+static bool btnExit(void);
+static bool btnRight(void);
+static bool btnLeft(void);
 static display_t draw(void);
 
 static byte uptMove;
@@ -70,9 +57,7 @@ void game1_start()
 	srand(millis());
 
 	display_setDrawFunc(draw);
-	buttons_setFunc(BTN_SELECT, select);
-	buttons_setFunc(BTN_DOWN, down);
-	buttons_setFunc(BTN_UP, up);
+	buttons_setFuncs(btnRight, btnExit, btnLeft);
 	
 	uptMove = UPT_MOVE_NONE;
 
@@ -88,23 +73,23 @@ void game1_start()
 	platformX = (FRAME_WIDTH / 2) - (PLATFORM_WIDTH / 2);
 }
 
-static bool select()
+static bool btnExit()
 {
 	free(blocks);
 	if(lives == 255)
 		game1_start();
 	else
-		animation_start(watchface_loadFace, ANIM_MOVE_OFF);
+		animation_start(display_load, ANIM_MOVE_OFF);
 	return true;
 }
 
-static bool down()
+static bool btnRight()
 {
 	uptMove = UPT_MOVE_RIGHT;
 	return false;
 }
 
-static bool up()
+static bool btnLeft()
 {
 	uptMove = UPT_MOVE_LEFT;
 	return false;
@@ -130,7 +115,8 @@ static display_t draw()
 		platformXtmp = FRAME_WIDTH - PLATFORM_WIDTH;
 
 	// Draw platform
-	s_image img = {platformXtmp, FRAME_HEIGHT - 8, platform, 12, 8, WHITE, NOINVERT, 0};
+	image_s img = newImage(platformXtmp, FRAME_HEIGHT - 8, platform, 12, 8, WHITE, NOINVERT, 0);
+	draw_bitmap_set(&img);
 	draw_bitmap_s2(&img);
 
 	platformX = platformXtmp;
@@ -154,7 +140,7 @@ static display_t draw()
 		{
 			if(!blocks[idx] && ballX >= x * 4 && ballX < (x * 4) + 4 && ballY >= (y * 4) + 8 && ballY < (y * 4) + 8 + 4)
 			{
-				buzzer_buzz(100, TONE_2KHZ, VOL_UI);
+				buzzer_buzz(100, TONE_2KHZ, VOL_UI, PRIO_UI, NULL);
 				led_flash(LED_GREEN, 50, 255);
 				blocks[idx] = true;
 				blockCollide = true;
@@ -179,7 +165,7 @@ static display_t draw()
 	if(!gameEnded && ballY >= FRAME_HEIGHT - PLATFORM_HEIGHT && ballY < 240 && ballX >= platformX && ballX <= platformX + PLATFORM_WIDTH)
 	{
 		platformCollision = true;
-		buzzer_buzz(200, TONE_5KHZ, VOL_UI);
+		buzzer_buzz(200, TONE_5KHZ, VOL_UI, PRIO_UI, NULL);
 		ball.y = FRAME_HEIGHT - PLATFORM_HEIGHT;
 		if(ball.velY > 0)
 			ball.velY *= -1;
@@ -191,12 +177,12 @@ static display_t draw()
 	{
 		if(ballY > 240)
 		{
-			buzzer_buzz(200, TONE_2_5KHZ, VOL_UI);
+			buzzer_buzz(200, TONE_2_5KHZ, VOL_UI, PRIO_UI, NULL);
 			ball.y = 0;
 		}
 		else if(!blockCollide)
 		{
-			buzzer_buzz(200, TONE_2KHZ, VOL_UI);
+			buzzer_buzz(200, TONE_2KHZ, VOL_UI, PRIO_UI, NULL);
 			ball.y = FRAME_HEIGHT - 1;
 			lives--;
 		}
@@ -248,11 +234,13 @@ static display_t draw()
 
 	// Got all blocks
 	if(score >= BLOCK_COUNT)
-		draw_string("WIN!", false, 50, 32);
+		draw_string_P(PSTR(STR_WIN), false, 50, 32);
 
 	// No lives left (255 because overflow)
 	if(lives == 255)
-		draw_string("GAMEOVER!", false, 34, 32);
+		draw_string_P(PSTR(STR_GAMEOVER), false, 34, 32);
 
 	return DISPLAY_BUSY;
 }
+
+#endif

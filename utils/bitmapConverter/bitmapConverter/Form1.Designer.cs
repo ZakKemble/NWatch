@@ -35,6 +35,7 @@
             this.pbPreview = new System.Windows.Forms.PictureBox();
             this.txtCode = new System.Windows.Forms.TextBox();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.cbHorizontal = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.pbSave)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbPreview)).BeginInit();
             this.SuspendLayout();
@@ -89,11 +90,22 @@
             this.txtCode.Size = new System.Drawing.Size(476, 150);
             this.txtCode.TabIndex = 6;
             // 
+            // cbHorizontal
+            // 
+            this.cbHorizontal.AutoSize = true;
+            this.cbHorizontal.Location = new System.Drawing.Point(12, 458);
+            this.cbHorizontal.Name = "cbHorizontal";
+            this.cbHorizontal.Size = new System.Drawing.Size(73, 17);
+            this.cbHorizontal.TabIndex = 11;
+            this.cbHorizontal.Text = "Horizontal";
+            this.cbHorizontal.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(500, 478);
+            this.ClientSize = new System.Drawing.Size(500, 481);
+            this.Controls.Add(this.cbHorizontal);
             this.Controls.Add(this.pbSave);
             this.Controls.Add(this.linkLabel1);
             this.Controls.Add(this.lblInfo);
@@ -118,6 +130,7 @@
         private System.Windows.Forms.PictureBox pbPreview;
         private System.Windows.Forms.TextBox txtCode;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.CheckBox cbHorizontal;
     }
 }
 

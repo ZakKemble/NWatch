@@ -1,42 +1,33 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <stdio.h>
-#include <string.h>
-#include "typedefs.h"
-#include "menus/diag.h"
-#include "menu.h"
-#include "menus/functions.h"
-#include "devices/ds3231.h"
-#include "devices/battery.h"
-#include "watchconfig.h"
+#include "common.h"
 
 #define OPTION_COUNT		4
-#define OPTION_EXIT			OPTION_COUNT - 1
 
-static s_prev_menu prevMenuData;
+static prev_menu_s prevMenuData;
 
 static void mSelect(void);
+static void itemLoader(byte);
 static void updateTemperature(void);
 static void updateVoltage(void);
 static void updateFPS(void);
 static void setShowFPS(void);
+static void batteryUpdate(void);
 
 void mDiagOpen()
 {
-	setMenuInfo(OPTION_COUNT, PSTR("  < DIAGNOSTICS >"), MENU_TYPE_STR, mSelect, upOption, downOption);
+	rtc_tempUpdate();
+	battery_update();
 
-	updateTemperature();
-	updateVoltage();
-	updateFPS();
-	setMenuOption_P(OPTION_EXIT, menuBack, NULL, back);
-	
+	setMenuInfo(OPTION_COUNT, MENU_TYPE_STR, PSTR(STR_DIAGNOSTICSMENU));
+	setMenuFuncs(MENUFUNC_NEXT, MENUFUNC_PREV, mSelect, itemLoader);
+
 	setPrevMenuOpen(&prevMenuData, mDiagOpen);
 	
 	beginAnimation2(NULL);
@@ -44,52 +35,69 @@ void mDiagOpen()
 
 static void mSelect()
 {
-	setPrevMenuExit(&prevMenuData, OPTION_EXIT);
-	doAction(menuData.selected != OPTION_EXIT ? false : true);
+	setPrevMenuExit(&prevMenuData);
+	doAction(exitSelected());
+}
+
+static void itemLoader(byte num)
+{
+	switch(num)
+	{
+		case 0:
+			updateTemperature();
+			return;
+		case 1:
+			updateVoltage();
+			return;
+		case 2:
+			updateFPS();
+			return;
+	}
+
+	setMenuOption_P(3, PSTR("FW   " FW_VERSION), NULL, NULL);
+	addBackOption();
 }
 
 static void updateTemperature()
 {
-	char tempInt;
-	byte tempFrac;
-	ds3231_temp(&tempInt, &tempFrac);
+	rtc_temperature_s temperature;
+	rtc_tempGet(&temperature);
+
 	byte temp = 0;
-	if(tempFrac & 0b10000000)
-		temp += 50;
-	if(tempFrac & 0b01000000)
-		temp += 25;
-	tempFrac = temp / 10;
+	if(temperature.frac & 0b10000000)
+		temp += 5;
+	if(temperature.frac & 0b01000000)
+		temp += 2;
+	//temperature.frac = div10(temp);
 
-	char buff[20];
-	sprintf_P(buff, PSTR("Temperature %hhd.%hhuC"), tempInt, tempFrac);
+	char buff[24];
+	sprintf_P(buff, PSTR(STR_TEMPERATURE), temperature.whole, temp);
 
-	setMenuOption(0, buff, NULL, updateTemperature);
+	setMenuOption(0, buff, NULL, rtc_tempUpdate);
 }
 
 static void updateVoltage()
 {
-	battery_update();
-	uint voltage = battery_voltage();
+	char buff[24];
+	sprintf_P(buff, PSTR(STR_BATTERY), battery_voltage());
 
-	char buff[20];
-	sprintf_P(buff, PSTR("Battery    %umV"), voltage);
-
-	setMenuOption(1, buff, NULL, updateVoltage);
+	setMenuOption(1, buff, NULL, batteryUpdate);
 }
 
 static void updateFPS()
 {
-	const char* str;
-	if(watchConfig.showFPS)
-		str = PSTR("Show FPS        Y");
-	else
-		str = PSTR("Show FPS        N");
-
-	setMenuOption_P(2, str, NULL, setShowFPS);
+	char buff[20];
+	char c = appConfig.showFPS ? CHAR_YES : CHAR_NO;
+	sprintf_P(buff, PSTR(STR_SHOWFPS), c);
+	setMenuOption(2, buff, NULL, setShowFPS);
 }
 
 static void setShowFPS()
 {
-	watchConfig.showFPS = !watchConfig.showFPS;
-	updateFPS();
+	appConfig.showFPS = !appConfig.showFPS;
+}
+
+static void batteryUpdate()
+{
+	battery_setUpdate(0);
 }

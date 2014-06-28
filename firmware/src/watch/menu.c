@@ -1,37 +1,36 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 #include "common.h"
-#include "menu.h"
-#include "menus/functions.h"
-#include "devices/buttons.h"
-#include "devices/oled.h"
-#include "watchface.h"
-#include "display.h"
-#include "animation.h"
-#include "draw.h"
-#include "resources.h"
-#include "watchconfig.h"
-#include "menus/main.h"
-#include "millis/millis.h"
 
-#define min(a,b) \
-({ __typeof__ (a) _a = (a); \
-__typeof__ (b) _b = (b); \
-	_a < _b ? _a : _b; })
+typedef enum
+{
+	OPERATION_DRAWICON,
+	OPERATION_DRAWNAME_ICON,
+	OPERATION_DRAWNAME_STR,
+	OPERATION_ACTION
+} operation_t;
 
-const char menuBack[] PROGMEM = "Back";
-s_menu menuData;
+typedef struct
+{
+	byte data;
+	operation_t op;
+	byte id;
+}operation_s;
 
+s_menuNowSetting setting;
+menu_s menuData;
+static operation_s operation;
+const char menuBack[] PROGMEM = STR_BACK;
+
+static void doBtn(menu_f);
+static void drawTitle(void);
+static void loader(operation_t, byte, byte);
 static void menu_drawStr(void);
 static display_t menu_drawIcon(void);
 static void checkScroll(void);
@@ -46,24 +45,28 @@ bool menu_select()
 			menuData.isOpen = true;
 			mMainOpen();
 		}
-		else if(menuData.selectFunc != NULL)
-			menuData.selectFunc();
+		else if(menuData.func.btn2 != NULL)
+			menuData.func.btn2();
 	}
 	return true;
 }
 
 bool menu_down()
 {
-	if(menuData.isOpen && (!animation_active() || animation_movingOn()) && menuData.downFunc != NULL)
-		menuData.downFunc();
+	doBtn(menuData.func.btn3);
 	return true;
 }
 
 bool menu_up()
 {
-	if(menuData.isOpen && (!animation_active() || animation_movingOn()) && menuData.upFunc != NULL)
-		menuData.upFunc();
+	doBtn(menuData.func.btn1);
 	return true;
+}
+
+static void doBtn(menu_f btn)
+{
+	if(menuData.isOpen && (!animation_active() || animation_movingOn()) && btn != NULL)
+		btn();
 }
 
 display_t menu_draw()
@@ -74,52 +77,55 @@ display_t menu_draw()
 	else
 		busy = menu_drawIcon();
 
-	if(menuData.drawFunc != NULL)
-		busy = busy || menuData.drawFunc();
+	if(menuData.func.draw != NULL)
+		busy = busy || menuData.func.draw() ? DISPLAY_BUSY : DISPLAY_DONE;
 
 	return busy;
 }
 
+static void drawTitle()
+{
+	char buff[24];
+	memset(buff, ' ', sizeof(buff));
+	strcpy_P(buff + (9 - (strlen_P(menuData.title) / 2)), menuData.title);
+	draw_string(buff, false, 0, 0);
+}
+
+static void loader(operation_t op, byte num, byte data)
+{
+	operation.op = op;
+	operation.id = num;
+	operation.data = data;
+
+	if(menuData.func.loader != NULL)
+		menuData.func.loader(num);
+}
+
 static void menu_drawStr()
 {
-//	static byte x = 0;
-//	x+=2;
-	draw_string(menuData.title, false, 0, 0);
+	drawTitle();
 
-	byte count = min(MAX_MENU_ITEMS, menuData.optionCount);
-	for(byte pos=0, i=menuData.scroll;i<menuData.scroll + count;pos++, i++)
+	byte scroll = menuData.scroll;
+	byte count = ((MAX_MENU_ITEMS < menuData.optionCount) ? MAX_MENU_ITEMS : menuData.optionCount) + scroll;
+	for(byte i=scroll;i<count;i++)
 	{
+		byte y = 8 + (8 * (i - scroll));
 		if(i == menuData.selected)
-			draw_string(">", false, 0, 8 + (8 * pos));
-		draw_string(menuData.options[i].name, false, 6, 8 + (8 * pos));
+			draw_string(">", false, 0, y);
+		loader(OPERATION_DRAWNAME_STR, i, y);
 	}
-/*
-	float a = (float)menuData.selected / (menuData.optionCount - 1);
-	byte b = (FRAME_HEIGHT - 8 - 8) * a;
-	draw_bitmap(FRAME_WIDTH - 7, b + 8, scrollBarIcon, 5, 8, WHITE, false, 0);
-*/
-/*
-	byte count = min(MAX_MENU_ITEMS, menuData.optionCount);
-	for(byte pos=0, i=menuData.scroll;i<menuData.scroll + count;pos++, i++)
-	{
-		byte a = 32 + ((pos * 8) - (menuData.selected * 8));
-		if(a > 7 && a < 119)
-			draw_string(menuData.options[i].name, false, 6, a);
-	}
-	draw_string(">", false, 0, 32);
-*/
 }
 
 static display_t menu_drawIcon()
 {
 	static int animX = 64;
 
-	int x = 64;
-	x -= 48 * menuData.selected;
-	
+	int x = 64 - (48 * menuData.selected);
+
 	display_t busy = DISPLAY_DONE;
 
-	if(watchConfig.animations)
+#if COMPILE_ANIMATIONS
+	if(appConfig.animations)
 	{
 		byte speed;
 		if(x > animX)
@@ -146,16 +152,18 @@ static display_t menu_drawIcon()
 		}
 	}
 	else
+#endif
 		animX = x;	
 
 	x = animX - 16;
-	
-	draw_string(menuData.title, false, 0, 0);
+
+	drawTitle();
 
 	// Create image struct
 	// FIX: struct uses heap, should use stack
 	byte fix = 36;
-	s_image img = newImage(46, 14, selectbar_top, fix, 8, WHITE, NOINVERT, 0);
+	image_s img = newImage(46, 14, selectbar_top, fix, 8, WHITE, NOINVERT, 0);
+	draw_bitmap_set(&img);
 
 	// Draw ...
 	draw_bitmap_s2(&img);
@@ -165,24 +173,62 @@ static display_t menu_drawIcon()
 	img.bitmap = selectbar_bottom;
 	draw_bitmap_s2(&img);
 
-	img.y = 16;
-	img.width = 32;
-	img.height = 32;
-
-	for(byte i=0;i<menuData.optionCount;i++)
+	LOOP(menuData.optionCount, i)
 	{
 		if(x < FRAME_WIDTH && x > -32)
-		{
-			img.x = x;
-			img.bitmap = menuData.options[i].icon != NULL ? menuData.options[i].icon : menu_default;
-			draw_bitmap_s2(&img);
-		}
+			loader(OPERATION_DRAWICON, i, x);
 		x += 48;
 	}
 
-	draw_string(menuData.options[menuData.selected].name, false, 0, FRAME_HEIGHT - 8);
-	
+	loader(OPERATION_DRAWNAME_ICON, menuData.selected, 0);
+
 	return busy;
+}
+
+void setMenuOption_P(byte num, const char* name, const byte* icon, menu_f actionFunc)
+{
+	if(num != operation.id)
+		return;
+
+	char buff[24];
+	strcpy_P(buff, name);
+	setMenuOption(num, buff, icon, actionFunc);
+}
+
+#include <math.h>
+void setMenuOption(byte num, const char* name, const byte* icon, menu_f actionFunc)
+{
+	if(num != operation.id)
+		return;
+
+	switch(operation.op)
+	{
+		case OPERATION_DRAWICON:
+			{
+				byte a = operation.data;
+				//if(a > FRAME_WIDTH)
+				//	a -= (FRAME_WIDTH+32);
+				float x = ((a/(float)(FRAME_WIDTH-32)) * (M_PI / 2)) + (M_PI / 4);
+				byte y = (sin(x) * 32);
+				y = 28;
+				image_s img = newImage(operation.data, y + 4 - 16, icon != NULL ? icon : menu_default, 32, 32, WHITE, NOINVERT, 0);
+				draw_bitmap_set(&img);
+				draw_bitmap_s2(NULL);
+			}
+			break;
+		case OPERATION_DRAWNAME_ICON:
+			draw_string((char*)name, false, 0, FRAME_HEIGHT - 8);
+			break;
+		case OPERATION_DRAWNAME_STR:
+			draw_string((char*)name, false, 6, operation.data);	
+			break;
+		case OPERATION_ACTION:
+			if(actionFunc != NULL)
+				operation.data ? beginAnimation(actionFunc) : actionFunc();
+			break;
+		default:
+			break;
+	}
 }
 
 bool menu_isOpen()
@@ -195,10 +241,10 @@ void menu_close()
 	clear();
 	menuData.isOpen = false;
 	menuData.prevMenu = NULL;
-	watchface_loadFace(); // Move somewhere else, sometimes we don't want to load the watch face when closing the menu
+	display_load(); // Move somewhere else, sometimes we don't want to load the watch face when closing the menu
 }
 
-void setPrevMenuOpen(s_prev_menu* prevMenu, menu_f newPrevMenu)
+void setPrevMenuOpen(prev_menu_s* prevMenu, menu_f newPrevMenu)
 {
 	if(menuData.prevMenu != newPrevMenu) // Make sure new and old menu funcs are not the same, otherwise we get stuck in a menu loop
 		prevMenu->last = menuData.prevMenu; // Save previous menu open func
@@ -206,9 +252,9 @@ void setPrevMenuOpen(s_prev_menu* prevMenu, menu_f newPrevMenu)
 	menuData.prevMenu = newPrevMenu; // Set new menu open func
 }
 
-void setPrevMenuExit(s_prev_menu* prevMenu, byte exitIdx)
+void setPrevMenuExit(prev_menu_s* prevMenu)
 {
-	if(menuData.selected != exitIdx) // Opened new menu, save selected item
+	if(!exitSelected()) // Opened new menu, save selected item
 		prevMenu->lastSelected = menuData.selected;
 	else
 	{
@@ -217,15 +263,40 @@ void setPrevMenuExit(s_prev_menu* prevMenu, byte exitIdx)
 	}
 }
 
-void clear()
+bool exitSelected()
 {
-	menuData.selectFunc = NULL;
-	menuData.downFunc = NULL;
-	menuData.upFunc = NULL;
-	menuData.drawFunc = NULL;
-	if(menuData.options != NULL)
-		free(menuData.options);
-	menuData.options = NULL;
+	return menuData.selected == menuData.optionCount - 1;
+}
+
+void do10sStuff(byte* val, byte now)
+{
+	byte mod = mod10(*val);
+	*val = (setting.val * 10) + mod;
+
+	setting.val = mod;
+	setting.now = now;
+}
+
+void do1sStuff(byte* val, byte max, byte now, byte newVal)
+{
+	byte temp = *val;
+	temp = ((temp / 10) * 10) + setting.val;
+	if(temp > max)
+		temp = max;
+	*val = temp;
+
+	setting.val = newVal;
+	setting.now = now;
+}
+
+static void clear()
+{
+	memset(&menuData.func, 0, sizeof(menuFuncs_t));
+}
+
+void addBackOption()
+{
+	setMenuOption_P(menuData.optionCount - 1, menuBack, menu_exit, back);
 }
 
 void back()
@@ -234,47 +305,47 @@ void back()
 //	mMainOpen();
 }
 
-inline void beginAnimation(menu_f onComplete)
+void beginAnimation(menu_f onComplete)
 {
-	animation_start(onComplete, ANIM_MOVE_OFF);
+	/*static bool aa;
+	if(aa)
+	{
+		//gogo = menuData.optionCount + 2;
+		menuData.selected = menuData.optionCount + 2;
+	}
+	else
+	{*/
+		animation_start(onComplete, ANIM_MOVE_OFF);
+	//	aa = true;
+	//}
+
+	//animation_start(onComplete, ANIM_MOVE_OFF);
 }
 
-inline void beginAnimation2(menu_f onComplete)
+void beginAnimation2(menu_f onComplete)
 {
 	animation_start(onComplete, ANIM_MOVE_ON);
 }
 
-void setMenuInfo(byte optionCount, const char* title, byte menuType, menu_f selectFunc, menu_f downFunc, menu_f upFunc)
+void setMenuInfo(byte optionCount, menu_type_t menuType, const char* title)
 {
 	clear();
-
 	menuData.scroll = 0;
 	menuData.selected = 0;
-	menuData.optionCount = optionCount;
+	menuData.optionCount = optionCount + 1;
 	menuData.menuType = menuType;
-	menuData.selectFunc = selectFunc;
-	menuData.downFunc = downFunc;
-	menuData.upFunc = upFunc;
-	strcpy_P(menuData.title, title);
-
-	menuData.options = (s_menuOption*)calloc(optionCount, sizeof(s_menuOption));
+	menuData.title = title;
 }
 
-void setMenuOption_P(byte num, const char* name, const byte* icon, menu_f actionFunc)
+void setMenuFuncs(menu_f btn1Func, menu_f btn2Func, menu_f btn3Func, itemLoader_f loader)
 {
-	strcpy_P(menuData.options[num].name, name);
-	menuData.options[num].icon = icon;
-	menuData.options[num].actionFunc = actionFunc;
+	menuData.func.btn1 = btn1Func;
+	menuData.func.btn2 = btn2Func;
+	menuData.func.btn3 = btn3Func;
+	menuData.func.loader = loader;
 }
 
-void setMenuOption(byte num, const char* name, const byte* icon, menu_f actionFunc)
-{
-	strcpy(menuData.options[num].name, name);
-	menuData.options[num].icon = icon;
-	menuData.options[num].actionFunc = actionFunc;
-}
-
-void downOption()
+void nextOption()
 {
 	menuData.selected++;
 	if(menuData.selected >= menuData.optionCount)
@@ -283,7 +354,7 @@ void downOption()
 	checkScroll();
 }
 
-void upOption()
+void prevOption()
 {
 	menuData.selected--;
 	if(menuData.selected >= menuData.optionCount)
@@ -294,20 +365,15 @@ void upOption()
 
 void doAction(bool anim)
 {
-	menu_f actionFunc = menuData.options[menuData.selected].actionFunc;
-	if(actionFunc != NULL)
-	{
-		if(anim)
-			beginAnimation(actionFunc);
-		else
-			actionFunc();
-	}		
+	loader(OPERATION_ACTION, menuData.selected, anim);
 }
 
 static void checkScroll()
 {
-	if(menuData.selected >= menuData.scroll + MAX_MENU_ITEMS)
-		menuData.scroll = (menuData.selected + 1) - MAX_MENU_ITEMS;
-	else if(menuData.selected < menuData.scroll)
-		menuData.scroll = menuData.selected;
+	byte scroll = menuData.scroll;
+	if(menuData.selected >= scroll + MAX_MENU_ITEMS)
+		scroll = (menuData.selected + 1) - MAX_MENU_ITEMS;
+	else if(menuData.selected < scroll)
+		scroll = menuData.selected;
+	menuData.scroll = scroll;
 }

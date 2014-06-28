@@ -1,18 +1,18 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#ifndef OLED_DATA_H_
-#define OLED_DATA_H_
-
-#include "typedefs.h"
+#ifndef RESOURCES_H_
+#define RESOURCES_H_
 
 #define DATE_FORMAT ("%s %02hhu %s 20%02hhu")
-#define TIME_FORMAT_SMALL ("%02hhu:%02hhu")
+#define TIME_FORMAT_SMALL ("%02hhu:%02hhu%c")
+
+extern const char dowChars[];
 
 extern const char days[7][4];
 extern const char months[12][4];
@@ -61,6 +61,9 @@ extern const byte battIconFull[];
 #define SMALLFONT_HEIGHT 8
 extern const byte smallFont[][5];
 
+#define CHAR_DEGREES	127
+#define CHAR_TICK		128
+
 #define MIDFONT_WIDTH 19
 #define MIDFONT_HEIGHT 24
 extern const byte midFont[][57];
@@ -77,4 +80,4 @@ extern const byte small2Font[][22];
 #define FONT_COLON_HEIGHT 24
 extern const byte colon[];
 
-#endif /* OLED_DATA_H_ */
+#endif /* RESOURCES_H_ */

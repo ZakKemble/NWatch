@@ -9,23 +9,17 @@
 #ifndef MILLIS_H_
 #define MILLIS_H_
 
-/**
-* Milliseconds data type \n
-* Data type				- Max time span			- Memory used \n
-* unsigned char			- 255 milliseconds		- 1 byte \n
-* unsigned int			- 65.54 seconds			- 2 bytes \n
-* unsigned long			- 49.71 days			- 4 bytes \n
-* unsigned long long	- 584.9 million years	- 8 bytes
-*/
-typedef unsigned int millis_t;
-
-typedef unsigned char millis8_t;
-
 #define MILLIS_TIMER0 0 /**< Use timer0. */
 #define MILLIS_TIMER1 1 /**< Use timer1. */
 #define MILLIS_TIMER2 2 /**< Use timer2. */
 
-#define MILLIS_TIMER MILLIS_TIMER2 /**< Which timer to use. */
+#include "millis_config.h"
+
+typedef MILLIS_DATATYPE millis_t;
+
+#if MILLIS_INLINE
+extern volatile millis_t milliseconds;
+#endif
 
 #ifndef ARDUINO
 /**
@@ -33,7 +27,16 @@ typedef unsigned char millis8_t;
 *
 * @note Not availble for Arduino since millis() is already used.
 */
-	#define millis() millis_get()
+#define millis() millis_get()
+
+#if MILLIS_INLINE
+/**
+* Alias of millis_get_inline().
+*
+* @note blah
+*/
+#define millis_inline() millis_get_inline()
+#endif
 #endif
 
 #ifdef __cplusplus
@@ -53,6 +56,18 @@ void millis_init(void);
 * @return Milliseconds.
 */
 millis_t millis_get(void);
+
+#if MILLIS_INLINE
+/**
+* Get milliseconds.
+*
+* @return Milliseconds.
+*/
+inline millis_t millis_get_inline(void)
+{
+	return milliseconds;
+}
+#endif
 
 /**
 * Turn on timer and resume time keeping.

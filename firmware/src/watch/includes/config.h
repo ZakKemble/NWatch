@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -17,6 +17,49 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
+// Hardware version
+// 1 = PCB 1.0 - 1.1
+// 2 = PCB 1.2
+// 3 = PCB 1.3
+#define HW_VERSION	3
+
+// Firmware version
+#define FW_VERSION	"1.1 20140628" // maybe use some __DATE__ __TIME__ stuff?
+
+// Language
+// 0 = English
+// 1 = German
+// etc
+#define LANGUAGE 0
+
+// Compile options
+#define COMPILE_GAME1 1 // Breakout
+#define COMPILE_GAME2 1 // Car dodge
+#define COMPILE_GAME3 0 // Flappy thing (not finished)
+#define COMPILE_ANIMATIONS 1
+#define COMPILE_STOPWATCH 1
+#define COMPILE_TORCH 1
+#define COMPILE_BTRCCAR 0
+#define COMPILE_UART 0
+#define COMPILE_SCREENSHOT 0
+
+
+#define COMPILE_I2C 1
+
+
+//#define UART_BAUD 76800
+//#define ALARM_COUNT 10
+
+#define RTC_SRC_INTERNAL	0
+#define RTC_SRC_DS3231		1
+#define RTC_SRC_DS1307		2
+#define RTC_SRC_MCP7940X	3
+
+#define RTC_SRC RTC_SRC_DS3231
+
+
+#define DEBUG_MSGS				0
+
 #define PIN_DEBUG_NONE			0
 #define PIN_DEBUG_DRAW			1
 #define PIN_DEBUG_SLEEP_IDLE	2
@@ -25,6 +68,10 @@
 
 #define PIN_DEBUG				PIN_DEBUG_NONE
 
+#if HW_VERSION == 3
+#define PIN_DEBUG_PIN	B6
+#else
 #define PIN_DEBUG_PIN	D4
+#endif
 
 #endif /* CONFIG_H_ */

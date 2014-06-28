@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -8,8 +8,6 @@
 
 #ifndef WDT_H_
 #define WDT_H_
-
-#include "typedefs.h"
 
 #define WDT_ENABLE		0
 #define WDT_DEBUG		0

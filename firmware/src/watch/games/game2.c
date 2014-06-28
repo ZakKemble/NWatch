@@ -1,28 +1,14 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <avr/eeprom.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "common.h"
-#include "games/game2.h"
-#include "display.h"
-#include "draw.h"
-#include "devices/oled.h"
-#include "devices/buttons.h"
-#include "watchface.h"
-#include "devices/buzzer.h"
-#include "devices/led.h"
-#include "menu.h"
-#include "resources.h"
-#include "animation.h"
+
+#if COMPILE_GAME2
 
 #define UPT_MOVE_NONE	0
 #define UPT_MOVE_UP		1
@@ -55,9 +41,9 @@ static const byte roadMarking[] PROGMEM ={
 	0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,
 };
 
-static bool select(void);
-static bool down(void);
-static bool up(void);
+static bool btnExit(void);
+static bool btnDown(void);
+static bool btnUp(void);
 static display_t draw(void);
 
 static const uint eepHighscore EEMEM;
@@ -68,6 +54,22 @@ static byte uptMove;
 static byte lives;
 static s_otherCars cars[CAR_COUNT];
 
+static const tune_t tune[] TUNEMEM = {
+	TONE_2KHZ<<8 | 200,
+	TONE_2_5KHZ<<8 | 200,
+	TONE_3KHZ<<8 | 200,
+	TONE_3KHZ<<8 | 200,
+	TONE_3KHZ<<8 | 200,
+	TONE_2_5KHZ<<8 | 200,
+	TONE_2_5KHZ<<8 | 200,
+	TONE_2_5KHZ<<8 | 200,
+	TONE_3KHZ<<8 | 200,
+	TONE_4KHZ<<8 | 200,
+	TONE_3KHZ<<8 | 200,
+	TONE_4KHZ<<8 | 200,
+	TONE_REPEAT
+};
+
 void game2_start()
 {
 	menu_close();
@@ -75,9 +77,7 @@ void game2_start()
 	srand(millis());
 
 	display_setDrawFunc(draw);
-	buttons_setFunc(BTN_SELECT,	select);
-	buttons_setFunc(BTN_DOWN,	down);
-	buttons_setFunc(BTN_UP,		up);
+	buttons_setFuncs(btnUp, btnDown, btnExit);
 
 	LOOP(CAR_COUNT, i)
 	{
@@ -90,63 +90,36 @@ void game2_start()
 	score = 0;
 	uptMove = UPT_MOVE_NONE;
 	lives = 3;
+	
+//	tune_play(tune);
 }
 
-static bool select()
+static bool btnExit()
 {
 	if(lives == 255)
 		game2_start();
 	else
-		animation_start(watchface_loadFace, ANIM_MOVE_OFF);
+		animation_start(display_load, ANIM_MOVE_OFF);
 	return true;
 }
 
-static bool down()
+static bool btnDown()
 {
 	uptMove = UPT_MOVE_DOWN;
 	return true;
 }
 
-static bool up()
+static bool btnUp()
 {
 	uptMove = UPT_MOVE_UP;
 	return true;
 }
-/*
-static void music(void)
-{
-	static byte idx;
-	static const uint tune[] PROGMEM = {
-		TONE_2KHZ,
-		TONE_2_5KHZ,
-		TONE_3KHZ,
-		TONE_3KHZ,
-		TONE_3KHZ,
-		TONE_2_5KHZ,
-		TONE_2_5KHZ,
-		TONE_2_5KHZ,
-		TONE_3KHZ,
-		TONE_4KHZ,
-		TONE_3KHZ,
-		TONE_4KHZ
-		};
-
-	if(!buzzer_buzzing())
-	{
-		buzzer_buzz(200, pgm_read_word(&tune[idx++]), VOL_UI);
-		if(idx > (sizeof(tune) / sizeof(uint)) - 1)
-			idx = 0;
-	}
-}
-*/
 
 static display_t draw()
 {
 	static s_myCar myCar;
 	static millis_t hitTime;
 	static bool newHighscore;
-
-//	music();
 
 	// Change lane
 	if(uptMove == UPT_MOVE_UP && myCar.lane < 3)
@@ -186,7 +159,10 @@ static display_t draw()
 			LOOP(CAR_COUNT, c)
 			{
 				if(i != c && cars[i].y == cars[c].y && cars[i].x > cars[c].x && cars[i].x < cars[c].x + CAR_LENGTH)
+				{
 					cars[i].x = cars[c].x + CAR_LENGTH + 1;
+					//cars[i].speed = cars[c].speed;
+				}					
 			}
 		}
 
@@ -217,12 +193,12 @@ static display_t draw()
 								newHighscore = false;
 
 							led_flash(LED_RED, 250, 255);
-							buzzer_buzz(250, TONE_2KHZ, VOL_UI);
+							buzzer_buzz(250, TONE_2KHZ, VOL_UI, PRIO_UI, NULL);
 						}	
 						else
 						{
 							led_flash(LED_RED, 30, 255);
-							buzzer_buzz(100, TONE_2KHZ, VOL_UI);
+							buzzer_buzz(100, TONE_2KHZ, VOL_UI, PRIO_UI, NULL);
 						}
 					}
 				}
@@ -248,7 +224,8 @@ static display_t draw()
 		quakeY = 0;
 	
 	// Draw my car
-	s_image img = {0, myCar.y + quakeY, carImg, 15, 16, WHITE, NOINVERT, 0};
+	image_s img = newImage(0, myCar.y + quakeY, carImg, 15, 16, WHITE, NOINVERT, 0);
+	draw_bitmap_set(&img);
 	if(!myCar.hit || (myCar.hit && (now & 64)))
 		draw_bitmap_s2(&img);
 
@@ -302,12 +279,12 @@ static display_t draw()
 	{
 		// Draw end game stuff
 
-		draw_string("GAMEOVER!", false, 20, 0);
-		draw_string("Score:", false, 20, 16);
-		draw_string("Highscore:", false, 20, 32);
+		draw_string_P(PSTR(STR_GAMEOVER), false, 20, 0);
+		draw_string_P(PSTR(STR_SCORE), false, 20, 16);
+		draw_string_P(PSTR(STR_HIGHSCORE), false, 20, 32);
 
 		if(newHighscore)
-			draw_string("!NEW HIGHSCORE!", false, 20, 48);
+			draw_string_P(PSTR(STR_NEWHIGHSCORE), false, 20, 48);
 
 		sprintf_P(buff, PSTR("%u"), score);
 		draw_string(buff, false, 96, 16);
@@ -318,3 +295,5 @@ static display_t draw()
 
 	return DISPLAY_BUSY;
 }
+
+#endif

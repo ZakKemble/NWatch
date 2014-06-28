@@ -110,7 +110,7 @@ namespace bitmapConverter
 
             BeginInvoke(info, (object)"Loading...");
 
-            if (!greyImage.load(files[0]))
+            if (!greyImage.load(files[0], cbHorizontal.Checked))
             {
                 BeginInvoke(info, (object)("Error opening image: " + greyImage.lastError()));
                 MessageBox.Show("Error opening image: " + greyImage.lastError(), "Image error", MessageBoxButtons.OK, MessageBoxIcon.Error);

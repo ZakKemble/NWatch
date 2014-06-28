@@ -1,25 +1,14 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include "common.h"
-#include "menus/alarms.h"
-#include "display.h"
-#include "menu.h"
-#include "menus/functions.h"
-#include "alarm.h"
-#include "draw.h"
 
-#define OPTION_COUNT	ALARM_COUNT + 1
-#define OPTION_EXIT		OPTION_COUNT - 1
+#define OPTION_COUNT	ALARM_COUNT
 
 #define SETTING_NOW_NONE		0
 #define SETTING_NOW_EN			1
@@ -27,41 +16,37 @@
 #define SETTING_NOW_1HOUR		3
 #define SETTING_NOW_10MIN		4
 #define SETTING_NOW_1MIN		5
-#define SETTING_NOW_DAY_MON		6
-#define SETTING_NOW_DAY_TUE		7
-#define SETTING_NOW_DAY_WED		8
-#define SETTING_NOW_DAY_THUR	9
-#define SETTING_NOW_DAY_FRI		10
-#define SETTING_NOW_DAY_SAT		11
-#define SETTING_NOW_DAY_SUN		12
+#define SETTING_NOW_AMPM		6
+#define SETTING_NOW_DAY_MON		7
+#define SETTING_NOW_DAY_TUE		8
+#define SETTING_NOW_DAY_WED		9
+#define SETTING_NOW_DAY_THUR	10
+#define SETTING_NOW_DAY_FRI		11
+#define SETTING_NOW_DAY_SAT		12
+#define SETTING_NOW_DAY_SUN		13
 
-#define ALARM_SET_CHAR ('X')
-#define ALARM_UNSET_CHAR (' ')
+#define ALARM_SET_CHAR (CHAR_TICK)
+#define ALARM_UNSET_CHAR ('.')
 
-static s_prev_menu prevMenuData;
-
-static s_menuNowSetting setting;
+static prev_menu_s prevMenuData;
+static alarm_s alarm;
 
 static void mSelect(void);
+static void itemLoader(byte);
 static void selectAlarm(void);
 static display_t alarmsDraw(void);
 static void alarmsDown(void);
 static void alarmsUp(void);
+static void mode12hrAmPm(void);
 static byte getMaxValForSetting(void);
-static void showAlarmStr(byte, s_alarm*);
-static void makeAlarmStr(char*, s_alarm*);
+static void showAlarmStr(byte, alarm_s*);
+static void makeAlarmStr(char*, alarm_s*);
 
 void mAlarmsOpen()
 {
-	setMenuInfo(OPTION_COUNT, PSTR("    < ALARMS >"), MENU_TYPE_STR, mSelect, upOption, downOption);
+	setMenuInfo(OPTION_COUNT, MENU_TYPE_STR, PSTR(STR_ALARMSMENU));
+	setMenuFuncs(MENUFUNC_NEXT, MENUFUNC_PREV, mSelect, itemLoader);
 
-	s_alarm* alarms = alarm_get();
-
-	LOOP(ALARM_COUNT, i)
-		showAlarmStr(i, &alarms[i]);
-
-	setMenuOption_P(OPTION_EXIT, menuBack, NULL, back);
-	
 	setPrevMenuOpen(&prevMenuData, mAlarmsOpen);
 
 	beginAnimation2(NULL);
@@ -69,101 +54,85 @@ void mAlarmsOpen()
 
 static void mSelect()
 {
-	setPrevMenuExit(&prevMenuData, OPTION_EXIT);
-	doAction(menuData.selected == OPTION_EXIT);
+	setPrevMenuExit(&prevMenuData);
+	doAction(exitSelected());
+}
+
+static void itemLoader(byte num)
+{
+	if(num < ALARM_COUNT)
+	{
+		alarm_s alarm2;
+		if(setting.now == SETTING_NOW_NONE || num != menuData.selected)
+			alarm_get(num, &alarm2);
+		else
+			memcpy(&alarm2, &alarm, sizeof(alarm_s));
+		showAlarmStr(num, &alarm2);
+	}
+	
+	addBackOption();
 }
 
 static void selectAlarm()
 {
-	static s_alarm alarm;
+	static byte dayBit;
 
-	menuData.downFunc = alarmsDown;
-	menuData.upFunc = alarmsUp;
-	menuData.drawFunc = alarmsDraw;
+	setMenuFuncs(alarmsDown, alarmsUp, mSelect, itemLoader);
+	menuData.func.draw = alarmsDraw;
 	switch(setting.now)
 	{
 		case SETTING_NOW_NONE:
-			memcpy(&alarm, &alarm_get()[menuData.selected], sizeof(s_alarm));
+			alarm_get(menuData.selected, &alarm);
 			setting.now = SETTING_NOW_EN;
 			setting.val = alarm.enabled;
 			break;
 		case SETTING_NOW_EN:
 			alarm.enabled = setting.val;
 			setting.now = SETTING_NOW_10HOUR;
-			setting.val = alarm.hour / 10;
+			setting.val = div10(alarm.hour);
 			break;
 		case SETTING_NOW_10HOUR:
-			{
-				byte mod = alarm.hour % 10;
-				alarm.hour = (setting.val * 10) + mod;
-				setting.now = SETTING_NOW_1HOUR;
-				setting.val = mod;
-			}
+			do10sStuff(&alarm.hour, SETTING_NOW_1HOUR);
 			break;
 		case SETTING_NOW_1HOUR:
-			alarm.hour = ((alarm.hour / 10) * 10) + setting.val;
-			if(alarm.hour > 23)
-				alarm.hour = 23;
-			setting.now = SETTING_NOW_10MIN;
-			setting.val = alarm.min / 10;
+			do1sStuff(&alarm.hour, !appConfig.mode12hr ? 23 : 12, SETTING_NOW_10MIN, div10(alarm.min));
 			break;
 		case SETTING_NOW_10MIN:
-			{
-				byte mod = alarm.min % 10;
-				alarm.min = (setting.val * 10) + mod;
-				setting.now = SETTING_NOW_1MIN;
-				setting.val = mod;
-			}
+			do10sStuff(&alarm.min, SETTING_NOW_1MIN);
 			break;
 		case SETTING_NOW_1MIN:
-			alarm.min = ((alarm.min / 10) * 10) + setting.val;
-			if(alarm.min > 59)
-				alarm.min = 59;
+			do1sStuff(&alarm.min, 59, !appConfig.mode12hr ? SETTING_NOW_DAY_MON : SETTING_NOW_AMPM, alarm.mon);
+			dayBit = 0;
+			break;
+		case SETTING_NOW_AMPM:
 			setting.now = SETTING_NOW_DAY_MON;
-			setting.val = alarm.mon;
 			break;
 		case SETTING_NOW_DAY_MON:
-			alarm.mon = setting.val;
-			setting.now = SETTING_NOW_DAY_TUE;
-			setting.val = alarm.tues;
-			break;
 		case SETTING_NOW_DAY_TUE:
-			alarm.tues = setting.val;
-			setting.now = SETTING_NOW_DAY_WED;
-			setting.val = alarm.wed;
-			break;
 		case SETTING_NOW_DAY_WED:
-			alarm.wed = setting.val;
-			setting.now = SETTING_NOW_DAY_THUR;
-			setting.val = alarm.thurs;
-			break;
 		case SETTING_NOW_DAY_THUR:
-			alarm.thurs = setting.val;
-			setting.now = SETTING_NOW_DAY_FRI;
-			setting.val = alarm.fri;
-			break;
 		case SETTING_NOW_DAY_FRI:
-			alarm.fri = setting.val;
-			setting.now = SETTING_NOW_DAY_SAT;
-			setting.val = alarm.sat;
-			break;
 		case SETTING_NOW_DAY_SAT:
-			alarm.sat = setting.val;
-			setting.now = SETTING_NOW_DAY_SUN;
-			setting.val = alarm.sun;
+		case SETTING_NOW_DAY_SUN:
+			if(setting.val)
+				alarm.days |= _BV(dayBit);
+			else
+				alarm.days &= ~_BV(dayBit);
+			dayBit++;
+			setting.val = (bool)(alarm.days & _BV(dayBit));
+			if(setting.now != SETTING_NOW_DAY_SUN)
+				setting.now++;
+			else
+			{
+				alarm_save(menuData.selected, &alarm);
+				setting.now = SETTING_NOW_NONE;
+				setMenuFuncs(MENUFUNC_NEXT, MENUFUNC_PREV, mSelect, itemLoader);
+				menuData.func.draw = NULL;
+			}
 			break;
 		default:
-			alarm.sun = setting.val;
-			memcpy(&alarm_get()[menuData.selected], &alarm, sizeof(s_alarm));
-			alarm_save();
-			setting.now = SETTING_NOW_NONE;
-			menuData.downFunc = upOption;
-			menuData.upFunc = downOption;
-			menuData.drawFunc = NULL;
 			break;
 	}
-	
-	showAlarmStr(menuData.selected, &alarm);
 }
 
 static display_t alarmsDraw()
@@ -178,124 +147,123 @@ static display_t alarmsDraw()
 			buff[0] = setting.val ? ALARM_SET_CHAR : ALARM_UNSET_CHAR;
 			break;
 		case SETTING_NOW_10HOUR:
-			x = 21;
-			buff[0] = setting.val + 48;
-			break;
 		case SETTING_NOW_1HOUR:
-			x = 28;
-			buff[0] = setting.val + 48;
-			break;
 		case SETTING_NOW_10MIN:
-			x = 42;
-			buff[0] = setting.val + 48;
-			break;
 		case SETTING_NOW_1MIN:
-			x = 49;
-			buff[0] = setting.val + 48;
+			{
+				x = 21 + (7 * (setting.now - SETTING_NOW_10HOUR));
+				if(setting.now > SETTING_NOW_1HOUR)
+					x += 7;
+
+				buff[0] = setting.val + 48;
+				/*if(!appConfig.mode12hr || alarm.hour != 0 || setting.val != 0)
+					buff[0] = setting.val + 48;
+				else if(setting.now == SETTING_NOW_10HOUR)
+					buff[0] = '1';
+				else if(setting.now == SETTING_NOW_1HOUR)
+					buff[0] = '2';*/
+			}
+			break;
+		case SETTING_NOW_AMPM:
+			x = 56;
+			byte hour = alarm.hour;
+			buff[0] = time_hourAmPm(&hour);
 			break;
 		case SETTING_NOW_DAY_MON:
-			x = 63;
-			buff[0] = setting.val ? 'M' : '-';
-			break;
 		case SETTING_NOW_DAY_TUE:
-			x = 70;
-			buff[0] = setting.val ? 'T' : '-';
-			break;
 		case SETTING_NOW_DAY_WED:
-			x = 77;
-			buff[0] = setting.val ? 'W' : '-';
-			break;
 		case SETTING_NOW_DAY_THUR:
-			x = 84;
-			buff[0] = setting.val ? 'T' : '-';
-			break;
 		case SETTING_NOW_DAY_FRI:
-			x = 91;
-			buff[0] = setting.val ? 'F' : '-';
-			break;
 		case SETTING_NOW_DAY_SAT:
-			x = 98;
-			buff[0] = setting.val ? 'S' : '-';
-			break;
 		case SETTING_NOW_DAY_SUN:
-			x = 105;
-			buff[0] = setting.val ? 'S' : '-';
+			{
+				byte dow = setting.now - SETTING_NOW_DAY_MON;
+				x = 70 + (7 * dow);
+				buff[0] = setting.val ? pgm_read_byte(&dowChars[dow]) : '-';
+			}
 			break;
 		default:
 			return DISPLAY_DONE;
 	}
 
 	byte y = 8 + ((menuData.selected * 8) - (menuData.scroll * 8));
+	
 	draw_clearArea(x, y, 5);
-
 	draw_string(buff, true, x, y);
 	
 	return DISPLAY_DONE;
 }
 
-static void alarmsDown()
-{
-	setting.val++;
-	if(setting.val > getMaxValForSetting())
-		setting.val = 0;
-}
-
 static void alarmsUp()
 {
-	setting.val--;
-	byte max = getMaxValForSetting();
-	if(setting.val > max)
-		setting.val = max;
+	if(setting.now != SETTING_NOW_AMPM)
+	{
+		setting.val++;
+		if(setting.val > getMaxValForSetting())
+			setting.val = 0;
+	}
+	else
+		mode12hrAmPm();
+}
+
+static void alarmsDown()
+{
+	if(setting.now != SETTING_NOW_AMPM)
+	{
+		setting.val--;
+		byte max = getMaxValForSetting();
+		if(setting.val > max)
+			setting.val = max;
+	}
+	else
+		mode12hrAmPm();
+}
+
+static void mode12hrAmPm()
+{
+	if(alarm.hour < 12)
+		alarm.hour += 12;
+	else
+		alarm.hour -= 12;
 }
 
 static byte getMaxValForSetting()
 {
-	byte max;
 	switch(setting.now)
 	{
 		case SETTING_NOW_10HOUR:
-			max = 2;
-			break;
+		{
+			if(!appConfig.mode12hr)
+				return 2;
+			else
+				return 1;
+		}
 		case SETTING_NOW_1HOUR:
-			max = 9;
-			break;
-		case SETTING_NOW_10MIN:
-			max = 5;
-			break;
 		case SETTING_NOW_1MIN:
-			max = 9;
-			break;
-		case SETTING_NOW_EN:
-		case SETTING_NOW_DAY_MON:
-		case SETTING_NOW_DAY_TUE:
-		case SETTING_NOW_DAY_WED:
-		case SETTING_NOW_DAY_THUR:
-		case SETTING_NOW_DAY_FRI:
-		case SETTING_NOW_DAY_SAT:
-		case SETTING_NOW_DAY_SUN:
-			max = 1;
-			break;
-		default:
-			max = 1;
-			break;
+			return 9;
+		case SETTING_NOW_10MIN:
+			return 5;
 	}
-	return max;
+	return 1;
 }
 
-static void showAlarmStr(byte idx, s_alarm* alarm)
+static void showAlarmStr(byte idx, alarm_s* alarm)
 {
-	char buff[16];
+	char buff[17];
 	makeAlarmStr(buff, alarm);
 	setMenuOption(idx, buff, NULL, selectAlarm);
 }
 
-static void makeAlarmStr(char* buff, s_alarm* alarm)
+static void makeAlarmStr(char* buff, alarm_s* alarm)
 {
-	sprintf_P(buff, PSTR("  %02hhu:%02hhu "), alarm->hour, alarm->min);
+	byte hour = alarm->hour;
+	char ampm = time_hourAmPm(&hour);
+
+	sprintf_P(buff + 1, PSTR(" %02hhu:%02hhu%c "), hour, alarm->min, ampm);
 
 	buff[0] = alarm->enabled ? ALARM_SET_CHAR : ALARM_UNSET_CHAR;
-	buff[15] = 0x00;
+	buff[16] = 0x00;
 
 	LOOP(7, i)
-		buff[i + 8] = alarmDayEnabled(alarm->days, i) ? alarm_getDayLetter(i) : '-';	
+		buff[i + 9] = alarm_dayEnabled(alarm->days, i) ? pgm_read_byte(&dowChars[i]) : '-';	
 }

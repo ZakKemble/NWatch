@@ -1,19 +1,16 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <string.h>
-//#include <math.h>
 #include "common.h"
-#include "animation.h"
-#include "devices/oled.h"
-#include "watchconfig.h"
 
-static s_anim animationStatus;
+#if COMPILE_ANIMATIONS
+
+static anim_s animationStatus;
 
 // http://javascript.info/tutorial/animation
 
@@ -143,6 +140,9 @@ void animation_update()
 	}	
 	return;
 */
+
+// y = x^4
+
 	if(animationStatus.active)
 	{
 		byte offsetY = animationStatus.offsetY;
@@ -192,7 +192,7 @@ void animation_update()
 
 void animation_start(void (*animOnComplete)(void), bool goingOffScreen)
 {
-	if(watchConfig.animations)
+	if(appConfig.animations)
 	{
 		animationStatus.active = true;
 		animationStatus.offsetY = goingOffScreen ? 0 : 192;
@@ -220,3 +220,5 @@ byte animation_offsetY()
 {
 	return animationStatus.offsetY;
 }
+
+#endif

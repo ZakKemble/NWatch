@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -8,9 +8,6 @@
 
 #ifndef SPI_H_
 #define SPI_H_
-
-#include <avr/io.h>
-#include "typedefs.h"
 
 void spi_init(void);
 void spi_enable(void);

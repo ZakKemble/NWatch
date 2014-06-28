@@ -1,15 +1,13 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#ifndef SLEEP_H_
-#define SLEEP_H_
-
-#include "typedefs.h"
+#ifndef PWRMGR_H_
+#define PWRMGR_H_
 
 typedef enum
 {
@@ -19,8 +17,7 @@ typedef enum
 	PWR_ACTIVE_BUTTONS = 3,
 	PWR_ACTIVE_STOPWATCH = 4,
 	PWR_ACTIVE_ALARM = 5,
-	PWR_ACTIVE_HOURBEEP = 6,
-	PWR_ACTIVE_COUNT = 7 // This should always be last
+	PWR_ACTIVE_COUNT = 6 // This should always be last
 } pwr_active_t;
 
 typedef enum
@@ -35,4 +32,4 @@ void pwrmgr_update(void);
 void pwrmgr_setState(pwr_active_t, pwr_state_t);
 bool pwrmgr_userActive(void);
 
-#endif /* SLEEP_H_ */
+#endif /* PWRMGR_H_ */

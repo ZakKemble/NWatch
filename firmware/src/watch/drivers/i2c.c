@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -9,17 +9,11 @@
 // I2C driver
 // Polling based, interrupts aren't really needed for this project since only a few bytes are transfered every-so-often
 
-#include <avr/io.h>
-#include <avr/power.h>
-#include <util/delay.h>
-#include <util/twi.h>
 #include "common.h"
-#include "drivers/i2c.h"
 
-#define SDA			C4
-#define SDL			C5
+#if COMPILE_I2C
+
 #define TWI_FREQ	400000UL
-
 #define TWI_BR		(((F_CPU / TWI_FREQ) - 16) / 2)
 
 void i2c_init()
@@ -36,9 +30,9 @@ void i2c_init()
 // Reset to known state (as per what the DS3231 datasheet says)
 void i2c_resetState()
 {
-	bit_clr(TWCR, TWEN); // Disable TWI
+	CLEAR_BITS(TWCR, TWEN); // Disable TWI
 	pinMode(SDA, INPUT);
-	pinPullup(SDA, PULLUP_ENABLE);
+	pinPullup(SDA, PU_EN);
 	delay(1);
 
 	// Toggle SDL until SDA goes HIGH or times out
@@ -46,14 +40,14 @@ void i2c_resetState()
 	while(!pinRead(SDA) && count--)
 	{
 		delay(1);
-		pinWrite(SDL, TOGGLE);
+		pinWrite(SCL, TOGGLE);
 	}
 
 	// Back to normal
 	pinMode(SDA, OUTPUT);
-	pinMode(SDL, OUTPUT);
+	pinMode(SCL, OUTPUT);
 	pinWrite(SDA, HIGH);
-	pinWrite(SDL, HIGH);
+	pinWrite(SCL, HIGH);
 }
 
 void i2c_start()
@@ -64,7 +58,7 @@ void i2c_start()
 	TWBR = TWI_BR; // Datasheet says to re-initialize after waking up
 
 	// START
-	TWCR = _BV(TWINT)|_BV(TWSTA)|_BV(TWEN);
+	LOAD_BITS(TWCR, TWINT, TWSTA, TWEN);
 
 	// Wait for START
 	loop_until_bit_is_set(TWCR, TWINT);
@@ -73,7 +67,7 @@ void i2c_start()
 void i2c_stop()
 {
 	// STOP
-	TWCR = _BV(TWINT)|_BV(TWEN)|_BV(TWSTO);
+	LOAD_BITS(TWCR, TWINT, TWEN, TWSTO);
 
 	// Wait for STOP
 	// WARNING: A bad I2C line can cause this loop to hang
@@ -83,7 +77,7 @@ void i2c_stop()
 		delay_us(5);
 
 	// Disable I2C
-	bit_clr(TWCR, TWEN);
+	CLEAR_BITS(TWCR, TWEN);
 
 	power_twi_disable();
 }
@@ -100,7 +94,7 @@ bool i2c_write(byte data)
 	TWDR = data;
 
 	// Begin sending
-	TWCR = _BV(TWINT)|_BV(TWEN);
+	LOAD_BITS(TWCR, TWINT, TWEN);
 
 	// Wait for finish
 	loop_until_bit_is_set(TWCR, TWINT);
@@ -113,10 +107,12 @@ bool i2c_write(byte data)
 bool i2c_read(byte* data, bool ack)
 {
 	// Expects more data (ACK) or not (NACK)
-	ack ? (bit_set(TWCR, TWEA)) : (bit_clr(TWCR, TWEA));
+	//ack ? (SET_BITS(TWCR, TWEA)) : (CLEAR_BITS(TWCR, TWEA));
+	// http://graphics.stanford.edu/~seander/bithacks.html#ConditionalSetOrClearBitsWithoutBranching
+	TWCR = (TWCR & ~_BV(TWEA)) | (-ack & _BV(TWEA));
 
 	// Begin receiving
-	bit_set(TWCR, TWINT);
+	SET_BITS(TWCR, TWINT);
 
 	// Wait for finish
 	loop_until_bit_is_set(TWCR, TWINT);
@@ -130,3 +126,5 @@ bool i2c_read(byte* data, bool ack)
 	*data = TWDR;
 	return true;
 }
+
+#endif

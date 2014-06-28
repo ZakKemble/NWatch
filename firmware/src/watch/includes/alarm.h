@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -9,18 +9,16 @@
 #ifndef ALARM_H_
 #define ALARM_H_
 
-#include "typedefs.h"
-
 #define ALARM_COUNT 10
 
-#define alarmDayEnabled(days, day) (days & _BV(day))
+#define alarm_dayEnabled(days, day) (days & _BV(day))
 
 void alarm_init(void);
-s_alarm* alarm_get(void);
-s_alarm* alarm_getNext(void);
+void alarm_reset(void);
+void alarm_get(byte, alarm_s*);
+bool alarm_getNext(alarm_s*);
 byte alarm_getNextDay(void);
-char alarm_getDayLetter(byte);
-void alarm_save(void);
+void alarm_save(byte, alarm_s*);
 void alarm_update(void);
 void alarm_updateNextAlarm(void);
 

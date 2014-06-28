@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Atmel Studio Solution File, Format Version 11.00
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "watch", "watch\watch.cproj", "{6CE6CA08-5C90-4783-85FD-87623F6DABB4}"
 EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "optiboot", "optiboot\optiboot.cproj", "{E1F31184-5FDC-464F-B2C8-15ACB9AF2F4B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AVR = Debug|AVR
@@ -13,6 +15,10 @@ Global
 		{6CE6CA08-5C90-4783-85FD-87623F6DABB4}.Debug|AVR.Build.0 = Debug|AVR
 		{6CE6CA08-5C90-4783-85FD-87623F6DABB4}.Release|AVR.ActiveCfg = Release|AVR
 		{6CE6CA08-5C90-4783-85FD-87623F6DABB4}.Release|AVR.Build.0 = Release|AVR
+		{E1F31184-5FDC-464F-B2C8-15ACB9AF2F4B}.Debug|AVR.ActiveCfg = Debug|AVR
+		{E1F31184-5FDC-464F-B2C8-15ACB9AF2F4B}.Debug|AVR.Build.0 = Debug|AVR
+		{E1F31184-5FDC-464F-B2C8-15ACB9AF2F4B}.Release|AVR.ActiveCfg = Release|AVR
+		{E1F31184-5FDC-464F-B2C8-15ACB9AF2F4B}.Release|AVR.Build.0 = Release|AVR
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

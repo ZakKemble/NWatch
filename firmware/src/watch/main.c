@@ -1,43 +1,20 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/io.h>
-#include <avr/power.h>
-#include <avr/interrupt.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include "common.h"
-#include "drivers/wdt.h"
-#include "drivers/spi.h"
-#include "drivers/uart.h"
-#include "drivers/i2c.h"
-#include "devices/oled.h"
-#include "devices/ds3231.h"
-#include "devices/buttons.h"
-#include "devices/battery.h"
-#include "devices/buzzer.h"
-#include "devices/led.h"
-#include "millis/millis.h"
-#include "display.h"
-#include "time.h"
-#include "alarm.h"
-#include "pwrmgr.h"
-#include "watchface.h"
-#include "watchfaces/normal.h"
-#include "apps/stopwatch.h"
-#include "watchconfig.h"
 
 static void init(void);
 #if WDT_ENABLE && WDT_DEBUG
 static void resetError(void);
 #else
-#define resetError() ((void)(0))
+#define resetError() EMPTY_FUNC
 #endif
+//static void configError(void);
 //static void freeRAM(void);
 
 int main(void)
@@ -48,45 +25,31 @@ int main(void)
 
 	if(wdt_wasReset())
 		resetError();
+	//else if(!appconfig_check())
+	//	configError();
 
-	buzzer_buzz(200, TONE_4KHZ, VOL_UI);
+	buzzer_buzz(200, TONE_4KHZ, VOL_UI, PRIO_UI, NULL);
+	//while(1){}
 	led_flash(LED_GREEN, 50, 255);
 
-	watchface_setFace(watchface_normal);
-	watchface_loadFace();
-/*
+	display_set(watchface_normal);
+	display_load();
+	
 	while(1)
 	{
-		buzzer_buzzb(200,TONE_5KHZ, VOL_UI);
-		buzzer_buzzb(200,TONE_4KHZ, VOL_UI);
-		buzzer_buzzb(200,TONE_2_5KHZ, VOL_UI);
-		buzzer_buzzb(200,TONE_2KHZ, VOL_UI);
-		buzzer_buzzb(200,TONE_4KHZ, VOL_UI);
-		buzzer_buzzb(200,TONE_5KHZ, VOL_UI);
-		buzzer_buzzb(200,TONE_2_5KHZ, VOL_UI);
-		buzzer_buzzb(200,TONE_2KHZ, VOL_UI);
-		buzzer_buzzb(200,TONE_3_5KHZ, VOL_UI);
-		buzzer_buzzb(200,TONE_4KHZ, VOL_UI);
-		buzzer_buzzb(200,TONE_3KHZ, VOL_UI);
-		buzzer_buzzb(250,TONE_2KHZ, VOL_UI);
-		buzzer_buzzb(250,TONE_2KHZ, VOL_UI);
-		buzzer_buzzb(200,TONE_4KHZ, VOL_UI);
-		buzzer_buzzb(200,TONE_4KHZ, VOL_UI);
-	}
-*/
-	while(1)
-	{
-		bool timeUpt = time_update();
+		time_update();
 		if(pwrmgr_userActive())
 		{
-			if(timeUpt && timeData.secs == 0)
-				battery_update();
+			battery_update();
 			buttons_update();
 		}
 
 		buzzer_update();
 		led_update();
+#if COMPILE_STOPWATCH
 		stopwatch_update();
+#endif
+		global_update();
 
 		if(pwrmgr_userActive())
 		{
@@ -106,7 +69,9 @@ static void init()
 {
 //	OSCCAL = 71;
 
+#if CPU_DIV != clock_div_1
 	clock_prescale_set(CPU_DIV);
+#endif
 
 //	power_twi_disable();
 //	power_usart0_disable();
@@ -115,37 +80,23 @@ static void init()
 //	power_timer2_disable();
 //	power_adc_disable();
 
-#if !UART_ENABLE
-	power_usart0_disable();
-#endif
-
-	// Pull-up on unused pins
-	pinPullup(D0, PULLUP_ENABLE);
-	pinPullup(D1, PULLUP_ENABLE);
-	pinPullup(D3, PULLUP_ENABLE);
-	pinPullup(D4, PULLUP_ENABLE);
-
-	pinPullup(B7, PULLUP_ENABLE);
-
 #if PIN_DEBUG != PIN_DEBUG_NONE
 	pinMode(PIN_DEBUG_PIN, OUTPUT);
 #endif
 
-	// Pin change interrupt on USB power sense pin
-	PCICR |= _BV(PCIE0);
-	PCMSK0 |= _BV(PCINT6);
-
 	// Everything else
+	global_init();
 	uart_init();
 	spi_init();
 	i2c_init();
-	watchconfig_init();
+	adc_init();
+	appconfig_init();
 	led_init();
 	buzzer_init();
 	battery_init();
-	ds3231_init();
 	buttons_init();
 	millis_init();
+	rtc_init();
 	pwrmgr_init();
 	time_init();
 	alarm_init();
@@ -164,7 +115,21 @@ static void resetError()
 	}
 }
 #endif
-
+/*
+static void configError()
+{
+	oled_power(OLED_PWR_OFF);
+	while(1)
+	{
+		if(!led_flashing())
+		{
+			delay(300);
+			led_flash(LED_RED, 50, 255);
+		}
+		led_update();
+	}
+}
+*/
 /*
 void freeRAM(void)
 {
@@ -175,8 +140,12 @@ void freeRAM(void)
 }
 */
 
-// USB plugged in uses PCINT0 to wake up
-EMPTY_INTERRUPT(PCINT0_vect);
-
+// USB plugged in uses PCINT0/2 to wake up
 // Buttons use PCINT1 to wake up, alias is used to save a few bytes
+#if HW_VERSION == 3
+EMPTY_INTERRUPT(PCINT2_vect);
+ISR(PCINT1_vect, ISR_ALIASOF(PCINT2_vect));
+#else
+EMPTY_INTERRUPT(PCINT0_vect);
 ISR(PCINT1_vect, ISR_ALIASOF(PCINT0_vect));
+#endif

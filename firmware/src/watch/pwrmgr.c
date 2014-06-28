@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -8,17 +8,7 @@
 
 // Deals with sleeping and waking up
 
-#include <avr/sleep.h>
-#include <avr/interrupt.h>
 #include "common.h"
-#include "pwrmgr.h"
-#include "devices/oled.h"
-#include "devices/buttons.h"
-#include "devices/buzzer.h"
-#include "display.h"
-#include "time.h"
-#include "watchconfig.h"
-#include "menu.h"
 
 typedef enum
 {
@@ -62,12 +52,14 @@ void pwrmgr_update()
 
 	if(idle || buttonsActive)
 	{
+#if COMPILE_ANIMATIONS
 		if(systemState == SYS_CRTANIM && buttonsActive) // Cancel CRT anim if a button is pressed
 		{
-			display_startCRTAnim(DISPLAY_CRTANIM_OPEN);
+			display_startCRTAnim(CRTANIM_OPEN);
 			systemState = SYS_AWAKE;
 		}
 		else // Idle sleep mode
+#endif
 		{
 			debugPin_sleepIdle(HIGH);
 			sleep_mode();
@@ -76,12 +68,14 @@ void pwrmgr_update()
 	}
 	else
 	{
+#if COMPILE_ANIMATIONS
 		if(systemState == SYS_AWAKE) // Begin CRT anim
 		{
 			systemState = SYS_CRTANIM;
-			display_startCRTAnim(DISPLAY_CRTANIM_CLOSE);
+			display_startCRTAnim(CRTANIM_CLOSE);
 		}
 		else if(systemState == SYS_CRTANIM)
+#endif
 		{
 			// Shutdown
 
@@ -129,8 +123,9 @@ static void userWake()
 {
 	userState = USER_ACTIVE;
 	buttons_clear();
-	display_startCRTAnim(DISPLAY_CRTANIM_OPEN);
+	display_startCRTAnim(CRTANIM_OPEN);
 	oled_power(OLED_PWR_ON);
+	battery_setUpdate(3);
 }
 
 static void userSleep()

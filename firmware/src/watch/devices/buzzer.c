@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -9,23 +9,19 @@
 // Buzzer
 // Timer1 is used for buzzing
 
-#include <avr/io.h>
-#include <avr/power.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
 #include "common.h"
-#include "devices/buzzer.h"
-#include "millis/millis.h"
-#include "watchconfig.h"
-#include "pwrmgr.h"
 
 static byte buzzLen;
 static millis8_t startTime;
+static buzzFinish_f onFinish;
+static tonePrio_t prio;
+
+static void stop(void);
 
 void buzzer_init()
 {
-	TCCR1A = _BV(WGM11);
-	TCCR1B = _BV(CS10)|_BV(WGM13);
+	LOAD_BITS(TCCR1A, WGM11);
+	LOAD_BITS(TCCR1B, CS10, WGM13);
 	OCR1A = 512;
 	ICR1 = 512 * 2;
 	power_timer1_disable();
@@ -35,8 +31,32 @@ void buzzer_init()
 }
 
 // Non-blocking buzz
-void buzzer_buzz(byte len, tone_t tone, vol_t volType)
+void buzzer_buzz(byte len, tone_t tone, vol_t volType, tonePrio_t _prio, buzzFinish_f _onFinish)
 {
+	if(_prio < prio)
+		return;
+	else if(tone == TONE_STOP)
+	{
+		stop();
+		return;
+	}
+
+	// Tell power manager that we are busy buzzing
+	pwrmgr_setState(PWR_ACTIVE_BUZZER, PWR_STATE_IDLE);
+
+	prio = _prio;
+	onFinish = _onFinish;
+	buzzLen = len;
+	startTime = millis();
+
+	// Silent pause tone
+	if(tone == TONE_PAUSE)
+	{
+		CLEAR_BITS(TCCR1A, COM1A1, COM1A0);
+		power_timer1_disable();
+		return;
+	}
+
 	// Workout volume
 	uint ocr;
 	byte vol;
@@ -44,45 +64,36 @@ void buzzer_buzz(byte len, tone_t tone, vol_t volType)
 	switch(volType)
 	{
 		case VOL_UI:
-			vol = watchConfig.volUI;
+			vol = appConfig.volUI;
 			break;
 		case VOL_ALARM:
-			vol = watchConfig.volAlarm;
+			vol = appConfig.volAlarm;
 			break;
 		case VOL_HOUR:
-			vol = watchConfig.volHour;
+			vol = appConfig.volHour;
 			break;
 		default:
 			vol = 2;
 			break;
 	}
 
-	switch(vol)
-	{
-		case 1:
-			ocr = (tone * 2) - (tone / 16);
-			break;
-		case 2:
-			ocr = (tone * 2) - (tone / 8);
-			break;
-		case 3:
-			ocr = (tone * 2) - (tone / 4);
-			break;
-		default:
-			return;
-	}
+	// Pulse width goes down as freq goes up
+	// This keeps power consumption the same for all frequencies, but volume goes down as freq goes up
 
-	buzzLen = len;
-	startTime = millis();
+	vol--;
+	if(vol > 2)
+		return;
+
+	uint icr = tone * 8;
+	ocr = icr - (icr / (32>>vol));
+
 	power_timer1_enable();
 	TIFR1 = 0;
-	TIMSK1 |= _BV(TOIE1);
+	SET_BITS(TIMSK1, TOIE1);
 	TCNT1 = 0;
 	OCR1A = ocr;
-	ICR1 = tone * 2;
-
-	// Tell power manager that we are busy buzzing
-	pwrmgr_setState(PWR_ACTIVE_BUZZER, PWR_STATE_IDLE);
+	ICR1 = icr;
+	//SET_BITS(TCCR1A, COM1A1, COM1A0);
 }
 /*
 #include "devices/led.h"
@@ -137,12 +148,21 @@ void buzzer_update()
 {
 	if(buzzLen && (millis8_t)(millis() - startTime) >= buzzLen)
 	{
-		bits_clr(TCCR1A, _BV(COM1A1)|_BV(COM1A0));
-		power_timer1_disable();
-		buzzLen = 0;
+		stop();
 
-		pwrmgr_setState(PWR_ACTIVE_BUZZER, PWR_STATE_NONE);
-	}	
+		if(onFinish != NULL)
+			onFinish();
+	}
+}
+
+static void stop()
+{
+	CLEAR_BITS(TCCR1A, COM1A1, COM1A0);
+	power_timer1_disable();
+	buzzLen = 0;
+	prio = PRIO_MIN;
+
+	pwrmgr_setState(PWR_ACTIVE_BUZZER, PWR_STATE_NONE);
 }
 
 // Sometimes the buzzer kind of 'pops' from a bad waveform output (the first HIGH pulse is too long)
@@ -150,6 +170,6 @@ void buzzer_update()
 // It still sometimes pops, but much less so than turning on the timer output in buzzer_buzz()
 ISR(TIMER1_OVF_vect)
 {
-	TCCR1A |= _BV(COM1A1)|_BV(COM1A0);
+	SET_BITS(TCCR1A, COM1A1, COM1A0);
 	TIMSK1 = 0;
 }

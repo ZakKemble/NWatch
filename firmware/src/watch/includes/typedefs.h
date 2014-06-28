@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -21,8 +21,6 @@ typedef unsigned char byte;
 typedef unsigned long ulong;
 typedef unsigned int uint;
 
-//typedef byte state_t;
-
 typedef enum
 {
 	DISPLAY_DONE,
@@ -30,22 +28,55 @@ typedef enum
 //	DISPLAY_TOOFAST
 } display_t;
 
+typedef enum
+{
+	MENU_TYPE_STR,
+	MENU_TYPE_ICON
+} menu_type_t;
+
+typedef enum
+{
+	MONTH_JAN = 0,
+	MONTH_FEB = 1,
+	MONTH_MAR = 2,
+	MONTH_APR = 3,
+	MONTH_MAY = 4,
+	MONTH_JUN = 5,
+	MONTH_JUL = 6,
+	MONTH_AUG = 7,
+	MONTH_SEP = 8,
+	MONTH_OCT = 9,
+	MONTH_NOV = 10,
+	MONTH_DEC = 11
+} month_t;
+
+typedef enum
+{
+	DAY_MON = 0,
+	DAY_TUE = 1,
+	DAY_WED = 2,
+	DAY_THU = 3,
+	DAY_FRI = 4,
+	DAY_SAT = 5,
+	DAY_SUN = 6,
+} day_t;
+
 typedef struct {
 	byte secs;
 	byte mins;
-	byte hours;
-	byte day;
+	byte hour;
+	day_t day;
 	byte date;
-	byte month;
+	month_t month;
 	byte year;
-}s_time;
+}time_s;
 
 typedef struct{
 	byte hour;
 	byte min;
 	union {
 		byte days;
-		struct{
+		struct{ // get rid of these bitfields?
 			bool mon:1;
 			bool tues:1;
 			bool wed:1;
@@ -56,70 +87,69 @@ typedef struct{
 			bool enabled:1;
 		};
 	};
-}s_alarm;
+}alarm_s;
 
+// Could use bitfields for the bools to save a few bytes of RAM and EEPROM, but uses an extra ~82 bytes of flash
 typedef struct{
-	byte sleepMode;
-	byte sleepBrightness;
+	//byte sleepMode;
+	//byte sleepBrightness;
 	byte sleepTimeout;
 	//byte brightness;
 	bool invert;
+#if COMPILE_ANIMATIONS
 	bool animations;
-	byte clockface;
+#endif
+	//byte clockface;
 	bool display180;
 	bool showFPS;
+	bool mode12hr;
 	union {
 		byte volumes;
-		struct{
+		struct{ // get rid of these bitfields?
 			byte volUI:2;
 			byte volAlarm:2;
 			byte volHour:2;
 			byte brightness:2;
 			};
 		};
-}s_watchconfig;
+}appconfig_s;
 
 typedef display_t (*draw_f)(void);
-typedef void (*watchFace_f)(void);
+typedef void (*display_f)(void);
 typedef bool (*button_f)(void);
 typedef void (*menu_f)(void);
-
-//struct s;
-//typedef void (*menuFunc)(struct s*);
-//typedef void (*menuFuncNoArg)(void);
+typedef void (*itemLoader_f)(byte);
 
 typedef struct{
-	char name[21];
-	const byte* icon;
-	menu_f actionFunc;
-}s_menuOption;
+	menu_f btn1; // make array
+	menu_f btn2;
+	menu_f btn3;
+	draw_f draw;
+	itemLoader_f loader;
+}menuFuncs_t;
 
 typedef struct{
 	byte selected;
 	byte scroll;
 	byte optionCount;
 	bool isOpen;
-	char title[19];
-	byte menuType;
-	menu_f downFunc;
-	menu_f upFunc;
-	menu_f selectFunc;
-	draw_f drawFunc;
+	const char* title;
+	menu_type_t menuType;
+	menuFuncs_t func;
 	menu_f prevMenu;
-	s_menuOption* options;
-}s_menu;
+}menu_s;
 
 typedef struct{
 	byte lastSelected;
 	menu_f last;
-}s_prev_menu;
+}prev_menu_s;
 
 typedef struct{
 	bool active;
 	byte offsetY;
 	void (*animOnComplete)(void);
 	bool goingOffScreen;
-}s_anim;
+}anim_s;
 
 typedef struct{
 	byte x;
@@ -127,9 +157,9 @@ typedef struct{
 	const byte* bitmap;
 	byte width;
 	byte height;
-	byte foreColour;
+//	byte foreColour;
 	bool invert;
 	byte offsetY;
-}s_image;
+}image_s;
 
 #endif /* TYPEDEFS_H_ */

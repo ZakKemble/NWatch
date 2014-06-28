@@ -1,7 +1,7 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
- * Copyright: (C) 2013 by Zak Kemble
+ * Copyright: (C) 2014 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
@@ -9,19 +9,19 @@
 #ifndef DS3231_H_
 #define DS3231_H_
 
-#include "typedefs.h"
-
-#define DS3231_SQW_ON	true
-#define DS3231_SQW_OFF	false
+#if RTC_SRC == RTC_SRC_DS3231
 
 void ds3231_init(void);
-void ds3231_sqw(bool);
-void ds3231_get(s_time*);
-void ds3231_save(s_time*);
-void ds3231_temp(char*, byte*);
-void ds3231_setUserAlarmWake(s_alarm*);
-void ds3231_setSystemAlarmWake(s_alarm*);
+void ds3231_sqw(rtc_sqw_t);
+void ds3231_get(time_s*);
+void ds3231_save(time_s*);
+void ds3231_tempUpdate(void);
+void ds3231_tempGet(rtc_temperature_s*);
+void ds3231_setUserAlarmWake(alarm_s*);
+void ds3231_setSystemAlarmWake(alarm_s*);
 bool ds3231_userAlarmState(void);
 bool ds3231_systemAlarmState(void);
+
+#endif
 
 #endif /* DS3231_H_ */

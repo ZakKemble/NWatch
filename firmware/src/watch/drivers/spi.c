@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -8,10 +8,7 @@
 
 // SPI driver
 
-#include <avr/io.h>
-#include <avr/power.h>
 #include "common.h"
-#include "drivers/spi.h"
 
 #define MISO	B4
 #define MOSI	B3
@@ -25,7 +22,7 @@ void spi_init()
 	pinMode(SS, OUTPUT);
 	pinMode(MOSI, OUTPUT);
 	pinMode(SCK, OUTPUT);
-	pinPullup(MISO, PULLUP_ENABLE);
+	pinPullup(MISO, PU_EN);
 	pinWrite(SS, HIGH);
 
 	init();

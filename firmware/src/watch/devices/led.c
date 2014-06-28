@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -8,14 +8,7 @@
 
 // LED control
 
-#include <avr/io.h>
-#include <avr/power.h>
-#include <util/delay.h>
 #include "common.h"
-#include "devices/led.h"
-#include "millis/millis.h"
-#include "watchconfig.h"
-#include "pwrmgr.h"
 
 #define RED_OCR		OCR0A
 #define RED_COM		COM0A1
@@ -37,8 +30,8 @@ static bool update(led_s*, byte, byte);
 
 void led_init()
 {
-	TCCR0A = _BV(WGM01)|_BV(WGM00);
-	TCCR0B = _BV(CS01)|_BV(CS00);
+	LOAD_BITS(TCCR0A, WGM01, WGM00);
+	LOAD_BITS(TCCR0B, CS01, CS00);
 	power_timer0_disable();
 
 	pinMode(D5, OUTPUT);
@@ -65,7 +58,7 @@ static void flash(led_s* led, byte len, byte brightness, volatile byte* ocr, byt
 	}
 }
 
-void led_flash(byte led, byte len, byte brightness)
+void led_flash(led_t led, byte len, byte brightness)
 {
 	switch(led)
 	{
@@ -81,12 +74,12 @@ void led_flash(byte led, byte len, byte brightness)
 
 	pwrmgr_setState(PWR_ACTIVE_LED, PWR_STATE_IDLE);
 }
-/*
+
 bool led_flashing()
 {
 	return ledRed.flashLen || ledGreen.flashLen;
 }
-*/
+
 static bool update(led_s* led, byte com, byte pin)
 {
 	if(led->flashLen && (millis8_t)(millis() - led->startTime) >= led->flashLen)

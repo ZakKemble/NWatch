@@ -1,37 +1,31 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <string.h>
-#include "typedefs.h"
-#include "menus/sound.h"
-#include "resources.h"
-#include "menu.h"
-#include "menus/functions.h"
-#include "watchconfig.h"
+#include "common.h"
 
-#define OPTION_COUNT		4
-#define OPTION_EXIT			OPTION_COUNT - 1
+#define OPTION_COUNT		3
 
-static s_prev_menu prevMenuData;
+static prev_menu_s prevMenuData;
 
 static void mSelect(void);
+static void itemLoader(byte);
 static void setVolumeUI(void);
 static void setVolumeAlarm(void);
 static void setVolumeHour(void);
+static inline byte setVolume(byte);
 static void setMenuOptions(void);
 
 void mSoundOpen()
 {
-	setMenuInfo(OPTION_COUNT, PSTR("     < SOUND >"), MENU_TYPE_ICON, mSelect, upOption, downOption);
+	setMenuInfo(OPTION_COUNT, MENU_TYPE_ICON, PSTR(STR_SOUNDMENU));
+	setMenuFuncs(MENUFUNC_NEXT, mSelect, MENUFUNC_PREV, itemLoader);
 
-	setMenuOptions();
-	setMenuOption_P(OPTION_EXIT, menuBack, menu_exit, back);
+//	setMenuOptions();
 
 	setPrevMenuOpen(&prevMenuData, mSoundOpen);
 
@@ -40,48 +34,51 @@ void mSoundOpen()
 
 static void mSelect()
 {
-	bool isExiting = menuData.selected == OPTION_EXIT;
+	bool isExiting = exitSelected();
 	if(isExiting)
-		watchconfig_save();
+		appconfig_save();
 
-	setPrevMenuExit(&prevMenuData, OPTION_EXIT);
+	setPrevMenuExit(&prevMenuData);
 
 	doAction(isExiting);
 }
 
+static void itemLoader(byte num)
+{
+	UNUSED(num);
+	setMenuOptions();
+	addBackOption();
+}
+
 static void setVolumeUI()
 {
-	byte vol = watchConfig.volUI;
-	vol++;
-	if(vol > 3)
-		vol = 0;
-	watchConfig.volUI = vol;
-	setMenuOptions();
+	appConfig.volUI = setVolume(appConfig.volUI);
+//	setMenuOptions();
 }
 
 static void setVolumeAlarm()
 {
-	byte vol = watchConfig.volAlarm;
-	vol++;
-	if(vol > 3)
-		vol = 0;
-	watchConfig.volAlarm = vol;
-	setMenuOptions();
+	appConfig.volAlarm = setVolume(appConfig.volAlarm);
+//	setMenuOptions();
 }
 
 static void setVolumeHour()
 {
-	byte vol = watchConfig.volHour;
+	appConfig.volHour = setVolume(appConfig.volHour);
+//	setMenuOptions();
+}
+
+static inline byte setVolume(byte vol)
+{
 	vol++;
 	if(vol > 3)
 		vol = 0;
-	watchConfig.volHour = vol;
-	setMenuOptions();
+	return vol;
 }
 
 static void setMenuOptions()
 {
-	setMenuOption_P(0, PSTR("UI"), menu_volume[watchConfig.volUI], setVolumeUI);
-	setMenuOption_P(1, PSTR("Alarms"), menu_volume[watchConfig.volAlarm], setVolumeAlarm);
-	setMenuOption_P(2, PSTR("Hour beeps"), menu_volume[watchConfig.volHour], setVolumeHour);
+	setMenuOption_P(0, PSTR(STR_UI), menu_volume[appConfig.volUI], setVolumeUI);
+	setMenuOption_P(1, PSTR(STR_ALARMS), menu_volume[appConfig.volAlarm], setVolumeAlarm);
+	setMenuOption_P(2, PSTR(STR_HOURBEEPS), menu_volume[appConfig.volHour], setVolumeHour);
 }

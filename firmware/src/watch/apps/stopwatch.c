@@ -1,30 +1,18 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <stdio.h>
-#include "typedefs.h"
-#include "apps/stopwatch.h"
-#include "devices/buttons.h"
-#include "display.h"
-#include "menu.h"
-#include "resources.h"
-#include "millis/millis.h"
-#include "watchface.h"
-#include "watchfaces/ui.h"
-#include "pwrmgr.h"
-#include "draw.h"
-#include "time.h"
-#include "animation.h"
+#include "common.h"
+
+#if COMPILE_STOPWATCH
 
 typedef enum
 {
-	STATE_STOPPED,
+	STATE_STOPPED = 0,
 	STATE_TIMING
 } stopwatch_state_t;
 
@@ -32,9 +20,9 @@ static stopwatch_state_t state;
 static ulong timer;
 static millis_t lastMS;
 
-static bool down(void);
-static bool up(void);
-static bool select(void);
+static bool btnReset(void);
+static bool btnStartStop(void);
+static bool btnExit(void);
 static display_t draw(void);
 
 void stopwatch_open()
@@ -42,9 +30,7 @@ void stopwatch_open()
 	menu_close();
 
 	display_setDrawFunc(draw);
-	buttons_setFunc(BTN_SELECT,	select);
-	buttons_setFunc(BTN_DOWN,	down);
-	buttons_setFunc(BTN_UP,		up);
+	buttons_setFuncs(btnReset, btnStartStop, btnExit);
 }
 
 bool stopwatch_active()
@@ -64,14 +50,14 @@ void stopwatch_update()
 	}
 }
 
-static bool down()
+static bool btnReset()
 {
 	timer = 0;
 	lastMS = millis();
 	return true;
 }
 
-static bool up()
+static bool btnStartStop()
 {
 	if(state == STATE_TIMING)
 	{
@@ -87,9 +73,9 @@ static bool up()
 	return true;
 }
 
-static bool select()
+static bool btnExit()
 {
-	animation_start(watchface_loadFace, ANIM_MOVE_OFF);
+	animation_start(display_load, ANIM_MOVE_OFF);
 	return true;
 }
 
@@ -119,31 +105,32 @@ static display_t draw()
 		num1 = (secs / 3600); // hours
 	}
 
-	s_image img = newImage(1, TIME_POS_Y, midFont[num1 / 10], MIDFONT_WIDTH, MIDFONT_HEIGHT, WHITE, NOINVERT, 0);
+	image_s img = newImage(1, TIME_POS_Y, midFont[div10(num1)], MIDFONT_WIDTH, MIDFONT_HEIGHT, WHITE, NOINVERT, 0);
+	draw_bitmap_set(&img);
 
 	draw_bitmap_s2(&img);
 
 	img.x = 24;
-	img.bitmap = midFont[num1 % 10];
+	img.bitmap = midFont[mod10(num1)];
 	draw_bitmap_s2(&img);
 
 	img.x = 60;
-	img.bitmap = midFont[num2 / 10];
+	img.bitmap = midFont[div10(num2)];
 	draw_bitmap_s2(&img);
 
 	img.x = 83;
-	img.bitmap = midFont[num2 % 10];
+	img.bitmap = midFont[mod10(num2)];
 	draw_bitmap_s2(&img);
 
 	img.x = 104;
 	img.y = 20 - 4 + 12;
 	img.width = FONT_SMALL2_WIDTH;
 	img.height = FONT_SMALL2_HEIGHT;
-	img.bitmap = small2Font[num3 / 10];
+	img.bitmap = small2Font[div10(num3)];
 	draw_bitmap_s2(&img);
 
 	img.x = 116;
-	img.bitmap = small2Font[num3 % 10];
+	img.bitmap = small2Font[mod10(num3)];
 	draw_bitmap_s2(&img);
 
 	img.x = TIME_POS_X + 46 + 2;
@@ -154,9 +141,13 @@ static display_t draw()
 	draw_bitmap_s2(&img);
 
 	// Draw time
-	char buff[6];
-	sprintf_P(buff, PSTR(TIME_FORMAT_SMALL), timeData.hours, timeData.mins);
+	byte hour = timeData.hour;
+	char ampm = time_hourAmPm(&hour);
+	char buff[7];
+	sprintf_P(buff, PSTR(TIME_FORMAT_SMALL), hour, timeData.mins, ampm);
 	draw_string(buff,NOINVERT,48,0);
 
 	return DISPLAY_BUSY;
 }
+
+#endif

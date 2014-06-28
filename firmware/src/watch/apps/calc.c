@@ -1,23 +1,13 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <string.h>
-#include <stdio.h>
-#include "typedefs.h"
-#include "apps/calc.h"
-#include "display.h"
-#include "resources.h"
-#include "menu.h"
-#include "draw.h"
-#include "devices/oled.h"
-#include "devices/buttons.h"
-#include "watchface.h"
+#include "common.h"
+
 /*
 static bool down(void);
 static bool up(void);

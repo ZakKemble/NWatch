@@ -1,40 +1,34 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <string.h>
-#include "typedefs.h"
-#include "menus/display.h"
-#include "resources.h"
-#include "menu.h"
-#include "menus/functions.h"
-#include "devices/oled.h"
-#include "watchconfig.h"
+#include "common.h"
 
-#define OPTION_COUNT	5
-#define OPTION_EXIT		OPTION_COUNT - 1
+#define OPTION_COUNT	4
 
-static s_prev_menu prevMenuData;
+static prev_menu_s prevMenuData;
 
 static void mSelect(void);
+static void itemLoader(byte);
 static void setBrightness(void);
 static void setInvert(void);
 static void setRotate(void);
+#if COMPILE_ANIMATIONS
 static void setAnimations(void);
+#endif
 static void setMenuOptions(void);
 
 void mDisplayOpen()
 {
-	setMenuInfo(OPTION_COUNT, PSTR("    < DISPLAY >"), MENU_TYPE_ICON, mSelect, upOption, downOption);
+	setMenuInfo(OPTION_COUNT, MENU_TYPE_ICON, PSTR(STR_DISPLAYMENU));
+	setMenuFuncs(MENUFUNC_NEXT, mSelect, MENUFUNC_PREV, itemLoader);
 
-	setMenuOptions();
-	setMenuOption_P(OPTION_EXIT, menuBack, menu_exit, back);
-	
+//	setMenuOptions();
+
 	setPrevMenuOpen(&prevMenuData, mDisplayOpen);
 
 	beginAnimation2(NULL);
@@ -42,54 +36,65 @@ void mDisplayOpen()
 
 static void mSelect()
 {
-	bool isExiting = menuData.selected == OPTION_EXIT;
+	bool isExiting = exitSelected();
 	if(isExiting)
-		watchconfig_save();
-	setPrevMenuExit(&prevMenuData,OPTION_EXIT);
+		appconfig_save();
+	setPrevMenuExit(&prevMenuData);
 	doAction(isExiting);
+}
+
+static void itemLoader(byte num)
+{
+	UNUSED(num);
+	setMenuOptions();
+	addBackOption();
 }
 
 static void setBrightness()
 {
-	byte brightness = watchConfig.brightness;
+	byte brightness = appConfig.brightness;
 	brightness++;
 	if(brightness > 3)
 		brightness = 0;
-	watchConfig.brightness = brightness;
-	setMenuOptions();
+	appConfig.brightness = brightness;
+//	setMenuOptions();
 
 	oled_setBrightness(brightness * 85);
 }
 
 static void setInvert()
 {
-	bool invert = !watchConfig.invert;
-	watchConfig.invert = invert;
-	setMenuOptions();
+	bool invert = !appConfig.invert;
+	appConfig.invert = invert;
+//	setMenuOptions();
 
 	oled_setInvert(invert);
 }
 
 static void setRotate()
 {
-	bool rotate = !watchConfig.display180;
-	watchConfig.display180 = rotate;
-	setMenuOptions();
+	bool rotate = !appConfig.display180;
+	appConfig.display180 = rotate;
+//	setMenuOptions();
 
 	oled_set180(rotate);
 }
 
+#if COMPILE_ANIMATIONS
 static void setAnimations()
 {
-	bool anims = !watchConfig.animations;
-	watchConfig.animations = anims;
-	setMenuOptions();
+	bool anims = !appConfig.animations;
+	appConfig.animations = anims;
+//	setMenuOptions();
 }
+#endif
 
 static void setMenuOptions()
 {
-	setMenuOption_P(0, PSTR("Brightness"), menu_brightness[watchConfig.brightness], setBrightness);
-	setMenuOption_P(1, PSTR("Invert"), menu_invert, setInvert);
-	setMenuOption_P(2, PSTR("Rotate"), menu_rotate, setRotate);
-	setMenuOption_P(3, PSTR("Animations"), menu_anim[watchConfig.animations], setAnimations);
+	setMenuOption_P(0, PSTR(STR_BRIGHTNESS), menu_brightness[appConfig.brightness], setBrightness);
+	setMenuOption_P(1, PSTR(STR_INVERT), menu_invert, setInvert);
+	setMenuOption_P(2, PSTR(STR_ROTATE), menu_rotate, setRotate);
+#if COMPILE_ANIMATIONS
+	setMenuOption_P(3, PSTR(STR_ANIMATIONS), menu_anim[appConfig.animations], setAnimations);
+#endif
 }

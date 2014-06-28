@@ -1,28 +1,17 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include "typedefs.h"
-#include "apps/torch.h"
-#include "devices/buttons.h"
-#include "display.h"
-#include "menu.h"
-#include "resources.h"
-#include "devices/oled.h"
-#include "devices/led.h"
-#include "millis/millis.h"
-#include "watchconfig.h"
-#include "watchface.h"
+#include "common.h"
 
 static uint strobe;
 
-static bool down(void);
-static bool select(void);
+static bool btnExit(void);
+static bool btnFlashRate(void);
 static display_t draw(void);
 
 void torch_open()
@@ -31,19 +20,17 @@ void torch_open()
 
 	strobe = 0;
 	display_setDrawFunc(draw);
-	buttons_setFunc(BTN_SELECT,	select);
-	buttons_setFunc(BTN_DOWN,	down);
-	buttons_setFunc(BTN_UP,		down);
+	buttons_setFuncs(btnExit, btnFlashRate, btnExit);
 }
 
-static bool down()
+static bool btnExit()
 {
-	oled_setInvert(watchConfig.invert);
-	watchface_loadFace();
+	oled_setInvert(appConfig.invert);
+	display_load();
 	return true;
 }
 
-static bool select()
+static bool btnFlashRate()
 {
 	if(strobe < 500)
 		strobe += 50 * ((strobe / 50) + 1);

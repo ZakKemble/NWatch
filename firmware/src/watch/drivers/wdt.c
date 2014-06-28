@@ -1,15 +1,21 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/wdt.h>
-#include <avr/interrupt.h>
 #include "common.h"
-#include "drivers/wdt.h"
+
+// NOTE: Bootloader puts copy of MCUSR in R2
+
+void get_mcusr(void) __attribute__((naked)) __attribute__((section(".init3"))); // init0?
+void get_mcusr()
+{
+	MCUSR = 0;
+	wdt_disable();
+}
 
 #if WDT_ENABLE
 

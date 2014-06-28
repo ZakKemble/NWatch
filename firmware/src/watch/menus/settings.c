@@ -1,43 +1,25 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <string.h>
-#include "typedefs.h"
-#include "menus/settings.h"
-#include "menus/timedate.h"
-#include "menus/sleep.h"
-#include "menus/sound.h"
-#include "menus/display.h"
-#include "resources.h"
-#include "menu.h"
-#include "menus/functions.h"
+#include "common.h"
 
-#define OPTION_COUNT	5
-#define OPTION_EXIT		OPTION_COUNT - 1
+#define OPTION_COUNT	4
 
-static s_prev_menu prevMenuData;
+static prev_menu_s prevMenuData;
 
 static void mSelect(void);
+static void itemLoader(byte);
 
 void mSettingsOpen()
 {
-	setMenuInfo(OPTION_COUNT, PSTR("   < SETTINGS >"), MENU_TYPE_ICON, mSelect, upOption, downOption);
+	setMenuInfo(OPTION_COUNT, MENU_TYPE_ICON, PSTR(STR_SETTINGSMENU));
+	setMenuFuncs(MENUFUNC_NEXT, mSelect, MENUFUNC_PREV, itemLoader);
 
-	setMenuOption_P(0, PSTR("Time & date"), menu_timedate, mTimeDateOpen);
-	setMenuOption_P(1, PSTR("Sleep"), menu_sleep, mSleepOpen);
-	setMenuOption_P(2, PSTR("Sound"), menu_sound, mSoundOpen);
-	setMenuOption_P(3, PSTR("Display"), menu_display, mDisplayOpen);
-//	setMenuOption_P(4, PSTR("LEDs"), NULL, NULL);
-//	setMenuOption_P(5, PSTR("UI"), NULL, NULL);
-//	setMenuOption_P(6, PSTR("RC Settings"), NULL, NULL);
-	setMenuOption_P(OPTION_EXIT, menuBack, menu_exit, back);
-	
 	setPrevMenuOpen(&prevMenuData, mSettingsOpen);
 
 	beginAnimation2(NULL);
@@ -45,6 +27,19 @@ void mSettingsOpen()
 
 static void mSelect()
 {
-	setPrevMenuExit(&prevMenuData, OPTION_EXIT);
+	setPrevMenuExit(&prevMenuData);
 	doAction(true);
+}
+
+static void itemLoader(byte num)
+{
+	UNUSED(num);
+	setMenuOption_P(0, PSTR(STR_TIMEDATE), menu_timedate, mTimeDateOpen);
+	setMenuOption_P(1, PSTR(STR_SLEEP), menu_sleep, mSleepOpen);
+	setMenuOption_P(2, PSTR(STR_SOUND), menu_sound, mSoundOpen);
+	setMenuOption_P(3, PSTR(STR_DISPLAY), menu_display, mDisplayOpen);
+//	setMenuOption_P(4, PSTR(STR_LEDS), NULL, NULL);
+//	setMenuOption_P(5, PSTR(STR_UI), NULL, NULL);
+//	setMenuOption_P(6, PSTR(STR_RCSETTINGS), NULL, NULL);
+	addBackOption();
 }

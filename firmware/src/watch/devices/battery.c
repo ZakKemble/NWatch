@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -10,58 +10,84 @@
 // Battery is connected to a P-MOSFET then to a voltage divider. This is so we don't have a load of current being wasted through the voltage divider all the time.
 // Polling based, interrupts not needed here since a conversion only takes ~500us and is only done every-so-often
 
-#include <avr/io.h>
-#include <avr/power.h>
-#include <util/delay.h>
 #include "common.h"
-#include "devices/battery.h"
 
-#define MOSFET			C0
-#define enable_adc()	(pinWrite(MOSFET, HIGH))
-#define disable_adc()	(pinWrite(MOSFET, LOW))
+#define ADC_CHANNEL			6
+#define DIVIDER				C0
+#define enable_divider()	(pinWrite(DIVIDER, HIGH))
+#define disable_divider()	(pinWrite(DIVIDER, LOW))
+
+#define MAX_VOLTAGE	4200 // Max battery voltage
+
+#if HW_VERSION == 1
+#define R1			7500 // R1 resistance
+#define R2			2700 // R2 resistance
+#define VREF		1100 // Reference voltage (Internal)
+#else
+#define R1			10000 // R1 resistance
+#define R2			10000 // R2 resistance
+#define VREF		2500 // Reference voltage (VCC)
+#endif
+
+#define MAX_ADCVAL	((uint16_t)((((R2 / (float)(R1 + R2)) * MAX_VOLTAGE) / VREF) * ADC_MAX))
+
+/*
+#if MAX_ADCVAL > ADC_MAX
+//	#undef MAX_ADCVAL
+//	#define MAX_ADCVAL ADCMAX
+	#warning "MAX_ADCVAL > ADCMAX"
+#endif
+*/
+
+// Resolution = MAX_VOLTAGE / MAX_ADCVAL
+// Resolution = 4.88mV
 
 static uint voltage;
+static byte nextUpdate;
+static bool doneUpdate;
 
 void battery_init()
 {
 	// MOSFET pin
-	pinMode(MOSFET, OUTPUT);
-	disable_adc();
+	pinMode(DIVIDER, OUTPUT);
+	disable_divider();
+}
 
-	// ADC registers
-	ADCSRA = _BV(ADPS2)|_BV(ADPS1)|_BV(ADPS0); // 128 prescaler = 62.5KHz @ 8MHz
-	ADMUX = _BV(REFS0)|_BV(REFS1)|6; // 1.1V internal ref, ADC channel 6
-	ACSR = _BV(ACD); // Disable analog comparator
-
-	// Disable ADC until later
-	power_adc_disable();
+// Set next update to happen in a few seconds
+void battery_setUpdate(byte secs)
+{
+	nextUpdate = timeData.secs + secs;
+	if(nextUpdate >= 60)
+		nextUpdate -= 60;
+	doneUpdate = false;
 }
 
 // Update voltage
 void battery_update()
 {
-	// Enable P-MOSFET
-	enable_adc();
+	if(timeData.secs != nextUpdate)
+	{
+		doneUpdate = false;
+		return;
+	}
+	else if(doneUpdate)
+		return;
 
-	// Wait a bit for MOSFET to turn on
+	doneUpdate = true;
+	nextUpdate = 0;
+
+	// Enable P-MOSFET
+	enable_divider();
+
+	// Wait a bit for things to turn on
 	delay_us(200);
 
-	// Start ADC
-	power_adc_enable();
-	bits_set(ADCSRA, _BV(ADEN)|_BV(ADSC));
-
-	// Wait for ADC completion
-	loop_until_bit_is_clear(ADCSRA, ADSC);
-
 	// Convert ADC value to voltage
-	voltage = ((ulong)ADC * 4200) / 1023;
-
-	// Disable ADC
-	bit_clr(ADCSRA, ADEN);
-	power_adc_disable();
+	uint adc = adc_read(ADC_CHANNEL);
+	voltage = ((ulong)adc * MAX_VOLTAGE) / MAX_ADCVAL;
 
 	// Turn off MOSFET
-	disable_adc();
+	disable_divider();
 }
 
 // Get voltage

@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -8,13 +8,8 @@
 
 // OLED control
 
-#include <avr/io.h>
-#include <util/delay.h>
 #include "common.h"
-#include "devices/oled.h"
 #include "devices/oled_defs.h"
-#include "drivers/spi.h"
-#include "watchconfig.h"
 
 #define CSN	B2
 #define DC	B0
@@ -48,6 +43,20 @@ static inline bool oled_deselect(void)
 
 byte oledBuffer[FRAME_BUFFER_SIZE];
 
+static const byte oledConfig[] PROGMEM ={
+//	OLED_SETMUX, 63,
+//	OLED_DISPLAY_OFFSET, 0,
+//	OLED_DISPLAY_START | 0,
+//	OLED_COMCFG, 0x12,
+//	OLED_DISPLAY_SHOWRAM,
+//	OLED_CLOCK_FREQ, 0x80,
+	OLED_CHARGEPUMP, OLED_CHARGEPUMP_EN,
+//	OLED_PRECHARGE_PERIOD, 0b11110001, //0xF1 // pre-charge period
+//	OLED_VCOM_LEVEL, 0x20, // 0x40 // V-COM deselect level
+	OLED_MEMMODE, OLED_MEM_HORIZ,
+	OLED_ON
+};
+
 static void resetPosition(void);
 static void sendCmd(byte);
 static void sendCmd2(byte, byte);
@@ -60,36 +69,24 @@ void oled_init()
 	rstHigh();
 	pinMode(RST, OUTPUT);
 
-	delay(50);
+	delay(1);
 	rstLow();
-	delay(50);
+	delay(1);
 	rstHigh();
-	delay(50);
+	delay(1);
 
-//	sendCmd(OLED_OFF);
+	CHIPSELECT(MODE_CMD)
+	{
+		LOOP(sizeof(oledConfig), i)
+			spi_transfer_nr(pgm_read_byte(&oledConfig[i]));
+	}
 
-	resetPosition();
+	oled_set180(appConfig.display180);
+	oled_setBrightness(appConfig.brightness * 85);
+	oled_setInvert(appConfig.invert);
 
-	sendCmd2(OLED_SETMUX, 63);
-	sendCmd2(OLED_DISPLAY_OFFSET, 0);
-	sendCmd(OLED_DISPLAY_START | 0);
-	oled_set180(watchConfig.display180);
-	sendCmd2(OLED_COMCFG, 0x12);
-	oled_setBrightness(watchConfig.brightness * 85);
-	sendCmd(OLED_DISPLAY_SHOWRAM);
-	oled_setInvert(watchConfig.invert);
-	sendCmd2(OLED_CLOCK_FREQ, 0x80);
-	sendCmd2(OLED_CHARGEPUMP, OLED_CHARGEPUMP_EN);
-
-	sendCmd(OLED_ON);
-
-//	sendCmd2(OLED_PRECHARGE_PERIOD, 0b11110001);//0xF1); // pre-charge period
-//	sendCmd2(OLED_VCOM_LEVEL, 0x20); // 0x40 // V-COM deselect level
-	sendCmd2(OLED_MEMMODE, OLED_MEM_HORIZ);
-
-	delay(20);
+	delay(1);
 	oled_flush();
-	delay(10);
 }
 
 static void resetPosition()
@@ -123,9 +120,14 @@ static void sendCmd(byte cmd)
 	}		
 }
 
+#include "apps/screenshot.h"
 void oled_flush()
 {
 	resetPosition();
+	
+#if COMPILE_SCREENSHOT
+	screenshot_send();
+#endif
 
 	CHIPSELECT(MODE_DATA)
 	{
@@ -137,6 +139,8 @@ void oled_flush()
 		// In total, we go from ~3.84ms transfer time of the basic loop to ~2.31ms using local variables and delay cycles. (4MHz SPI, 1KB frame buffer)
 		// As an added bonus we clear the frame buffer with the extra clock cycles which means we don't have to wait for memset() to clear it later on.
 		// The minimum possible transfer time for 4MHz SPI and 1KB frame buffer is 2.048ms. 12.5% overhead (1 cycle to read SPSR, 1 cycle to set SPDR)... not bad :3
+
+		// Or... instead of using the normal SPI bus, we could use USART in SPI mode which will give us double buffering to remove that 12.5% overhead. :O
 
 		for(uint i=0;i<FRAME_BUFFER_SIZE;i++)
 		{
@@ -166,9 +170,9 @@ void oled_flush()
 	}
 }
 
-void oled_power(bool on)
+void oled_power(oled_pwr_t on)
 {
-	sendCmd(on ? OLED_ON : OLED_OFF);
+	sendCmd(on == OLED_PWR_ON ? OLED_ON : OLED_OFF);
 }
 
 void oled_setBrightness(byte brightness)
@@ -184,14 +188,8 @@ void oled_setInvert(bool invert)
 void oled_set180(bool rotate)
 {
 	if(rotate)
-	{
-		sendCmd(OLED_SEG_REMAP);
-		sendCmd(OLED_SCANDIR_REMAP);
-	}
+		sendCmd2(OLED_SEG_REMAP, OLED_SCANDIR_REMAP);
 	else
-	{
-		sendCmd(OLED_SEG_NML);
-		sendCmd(OLED_SCANDIR_NML);
-	}
+		sendCmd2(OLED_SEG_NML, OLED_SCANDIR_NML);
 }
 

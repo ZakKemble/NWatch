@@ -1,62 +1,59 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <avr/eeprom.h>
-#include <limits.h>
-#include <stdio.h>
 #include "common.h"
-#include "alarm.h"
-#include "devices/buzzer.h"
-#include "devices/led.h"
-#include "time.h"
-#include "draw.h"
-#include "resources.h"
-#include "devices/buttons.h"
-#include "devices/oled.h"
-#include "display.h"
-#include "watchconfig.h"
-#include "pwrmgr.h"
 
-static s_alarm alarms[ALARM_COUNT];
-static s_alarm* nextAlarm;
+static byte nextAlarm;
 static byte nextAlarmDay;
 static bool alarmSetOff;
 static draw_f oldDrawFunc;
-static button_f oldSelectFunc;
-static button_f oldDownFunc;
-static button_f oldUpFunc;
+static button_f oldBtn1Func;
+static button_f oldBtn2Func;
+static button_f oldBtn3Func;
 
-static const s_alarm eepAlarms[ALARM_COUNT] EEMEM = {};
+static alarm_s eepAlarms[ALARM_COUNT] EEMEM; // = {{22,45,0},{01,48,4},{7,45,63},{9,4,0},{3,1,7}};
 
-static void load(void);
-static void save(void);
 static bool goingOff(void);
 static void getNextAlarm(void);
 static uint toMinutes(byte, byte, byte);
-static bool select(void);
+static bool stopAlarm(void);
 static display_t draw(void);
 
 void alarm_init()
 {
-	load();
-
 	getNextAlarm();
 }
 
-s_alarm* alarm_get()
+void alarm_reset()
 {
-	return alarms;
+	// Set bytes individually, uses less flash space
+	LOOPR(ALARM_COUNT * sizeof(alarm_s), i)
+		eeprom_update_byte(((byte*)eepAlarms) + i, 0);
+
+	//alarm_s alarm;
+	//memset(&alarm, 0, sizeof(alarm_s));
+	//LOOPR(ALARM_COUNT, i)
+	//	eeprom_update_block(&alarm, &eepAlarms[i], sizeof(alarm_s));
 }
 
-s_alarm* alarm_getNext()
+void alarm_get(byte num, alarm_s* alarm)
 {
-	return nextAlarm;
+	eeprom_read_block(alarm, &eepAlarms[num], sizeof(alarm_s));
+//	if(alarm->hour > 23)
+//		memset(alarm, 0, sizeof(alarm_s));
+}
+
+bool alarm_getNext(alarm_s* alarm)
+{
+	if(nextAlarm == UCHAR_MAX)
+		return false;
+	alarm_get(nextAlarm, alarm);
+	return true;
 }
 
 byte alarm_getNextDay()
@@ -64,50 +61,37 @@ byte alarm_getNextDay()
 	return nextAlarmDay;
 }
 
-char alarm_getDayLetter(byte day)
+void alarm_save(byte num, alarm_s* alarm)
 {
-	static byte days[] = {'M','T','W','T','F','S','S'};
-	return days[day];
-}
-
-void alarm_save()
-{
-	save();
+	eeprom_update_block(alarm, &eepAlarms[num], sizeof(alarm_s));
+	getNextAlarm();
 }
 
 void alarm_update()
 {
-	static bool buzzHigh = false;
-
 	bool wasGoingOff = alarmSetOff;
-	if(goingOff() && alarmSetOff)
+	bool alarmNow = goingOff();
+	if(alarmNow && alarmSetOff)
 	{
 		if(wasGoingOff != alarmSetOff)
 		{
 			oldDrawFunc = display_setDrawFunc(draw);
-			oldSelectFunc = buttons_setFunc(BTN_SELECT, select);
-			oldDownFunc = buttons_setFunc(BTN_DOWN, NULL);
-			oldUpFunc = buttons_setFunc(BTN_UP, NULL);
+			oldBtn1Func = buttons_setFunc(BTN_1, NULL);
+			oldBtn2Func = buttons_setFunc(BTN_2, stopAlarm);
+			oldBtn3Func = buttons_setFunc(BTN_3, NULL);
 			pwrmgr_setState(PWR_ACTIVE_ALARM, PWR_STATE_IDLE);
+			tune_play(tuneAlarm, VOL_ALARM, PRIO_ALARM);
 		}
 
-		if(!buzzer_buzzing())
+		if(!led_flashing())
 		{
-			if(buzzHigh)
-			{
-				buzzer_buzz(200, TONE_5KHZ, VOL_ALARM);
-				led_flash(LED_GREEN, 150, 255);
-				oled_setInvert(true);
-			}
-			else
-			{
-				buzzer_buzz(200, TONE_3KHZ, VOL_ALARM);
-				led_flash(LED_RED, 150, 255);
-				oled_setInvert(false);
-			}			
-			buzzHigh = !buzzHigh;
+			static led_t ledFlash = LED_GREEN;
+			ledFlash = (ledFlash == LED_GREEN) ? LED_RED : LED_GREEN;
+			led_flash(ledFlash, 150, 255);
 		}
 	}
+	else if(!alarmNow && alarmSetOff)
+		stopAlarm();
 }
 
 void alarm_updateNextAlarm()
@@ -117,7 +101,9 @@ void alarm_updateNextAlarm()
 
 static bool goingOff()
 {
-	if(nextAlarm != NULL && alarmDayEnabled(nextAlarm->days, timeData.day) && nextAlarm->hour == timeData.hours && nextAlarm->min == timeData.mins)
+	alarm_s nextAlarm;
+
+	if(alarm_getNext(&nextAlarm) && alarm_dayEnabled(nextAlarm.days, timeData.day) && nextAlarm.hour == timeData.hour && nextAlarm.min == timeData.mins)
 	{
 		if(timeData.secs == 0)
 		{
@@ -129,42 +115,33 @@ static bool goingOff()
 	return false;
 }
 
-static void load()
-{
-	eeprom_read_block(alarms, eepAlarms, sizeof(s_alarm) * ALARM_COUNT);
-}
-
-static void save()
-{
-	eeprom_update_block(alarms, (s_alarm*)eepAlarms, sizeof(s_alarm) * ALARM_COUNT);
-	getNextAlarm();
-}
-
 // This func needs to be ran when an alarm has changed, time has changed and an alarm has gone off
 static void getNextAlarm()
 {
-	s_alarm* next = NULL;
+	byte next = UCHAR_MAX;
 	uint nextTime = UINT_MAX;
 
 	// Now in minutes from start of week
-	uint now = toMinutes(timeData.hours, timeData.mins + 1, timeData.day);
+	uint now = toMinutes(timeData.hour, timeData.mins + 1, timeData.day);
 
 	// Loop through alarms
 	LOOPR(ALARM_COUNT, i)
 	{
-		// Not enabled
-		if(!alarms[i].enabled)
+		alarm_s alarm;
+		alarm_get(i, &alarm);
+
+		if(!alarm.enabled)
 			continue;
 
 		// Loop through days
 		LOOPR(7, d)
 		{
 			// Day not enabled
-			if(!alarmDayEnabled(alarms[i].days, d))
+			if(!alarm_dayEnabled(alarm.days, d))
 				continue;
 
-			// Alarm time in minutes from start of weeek
-			uint alarmTime = toMinutes(alarms[i].hour, alarms[i].min, d);
+			// Alarm time in minutes from start of week
+			uint alarmTime = toMinutes(alarm.hour, alarm.min, d);
 
 			// Minutes to alarm
 			int timeTo = alarmTime - now;
@@ -178,7 +155,7 @@ static void getNextAlarm()
 			{
 				// This is our next alarm
 				nextTime = timeTo;
-				next = &alarms[i];
+				next = i;
 				nextAlarmDay = d;
 			}
 		}
@@ -196,14 +173,13 @@ static uint toMinutes(byte hours, byte mins, byte dow)
 	return total;
 }
 
-static bool select()
+static bool stopAlarm()
 {
 	display_setDrawFunc(oldDrawFunc);
-	buttons_setFunc(BTN_SELECT, oldSelectFunc);
-	buttons_setFunc(BTN_DOWN, oldDownFunc);
-	buttons_setFunc(BTN_UP, oldUpFunc);
-	oled_setInvert(watchConfig.invert);
+	buttons_setFuncs(oldBtn1Func, oldBtn2Func, oldBtn3Func);
+	oled_setInvert(appConfig.invert);
 	pwrmgr_setState(PWR_ACTIVE_ALARM, PWR_STATE_NONE);
+	tune_stop(PRIO_ALARM);
 	alarmSetOff = false;
 	return true;
 }
@@ -212,13 +188,17 @@ static display_t draw()
 {
 	if((millis8_t)millis() < 128)
 	{
-		s_image a = {16, 16, menu_alarm, 32, 32, WHITE, NOINVERT, 0};
-		draw_bitmap_s2(&a);
+		byte fix = 16;
+		image_s img = newImage(16, fix, menu_alarm, 32, 32, WHITE, NOINVERT, 0);
+		draw_bitmap_set(&img);
+		draw_bitmap_s2(&img);
 	}
 
 	// Draw time
-	char buff[6];
-	sprintf_P(buff, PSTR(TIME_FORMAT_SMALL), timeData.hours, timeData.mins);
+	byte hour = timeData.hour;
+	char ampm = time_hourAmPm(&hour);
+	char buff[7];
+	sprintf_P(buff, PSTR(TIME_FORMAT_SMALL), hour, timeData.mins, ampm);
 	draw_string(buff,NOINVERT,79,20);
 
 	// Draw day

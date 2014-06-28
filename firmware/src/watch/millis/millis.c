@@ -9,7 +9,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/power.h>
-#include <util/atomic.h>
+//#include <util/atomic.h>
+#include <stdbool.h>
 #include "millis/millis.h"
 
 #ifndef F_CPU
@@ -109,23 +110,43 @@
 	#error "Bad MILLIS_TIMER set"
 #endif
 
-static volatile millis_t milliseconds;
+#define OCR_VAL ((F_CPU / PRESCALER) / 1000)
+
+static inline bool millis_interrupt_off(void)
+{
+	REG_TIMSK &= ~_BV(BIT_OCIE);
+	return true;
+}
+
+static inline bool millis_interrupt_on(void)
+{
+	REG_TIMSK |= _BV(BIT_OCIE);
+	return false;
+}
+
+// NEED TO DO A RESTORE THING! if paused then millis() is called it will unpause
+#define MILLIS_ATOMIC() for(bool cs = millis_interrupt_off(); cs; cs = millis_interrupt_on())
+
+#if !MILLIS_INLINE
+static
+#endif
+volatile millis_t milliseconds;
 
 // Initialise library
 void millis_init()
 {
 	// Timer settings
-	SET_TCCRA();
+	//SET_TCCRA();
 	SET_TCCRB();
 	REG_TIMSK = _BV(BIT_OCIE);
-	REG_OCR = ((F_CPU / PRESCALER) / 1000);
+	REG_OCR = OCR_VAL;
 }
 
 // Get current milliseconds
 millis_t millis_get()
 {
 	millis_t ms;
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	MILLIS_ATOMIC()
 	{
 		ms = milliseconds;
 	}
@@ -149,7 +170,7 @@ void millis_pause()
 // Reset milliseconds count to 0
 void millis_reset()
 {
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	MILLIS_ATOMIC()
 	{
 		milliseconds = 0;
 	}
@@ -158,7 +179,7 @@ void millis_reset()
 // Add time
 void millis_add(millis_t ms)
 {
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	MILLIS_ATOMIC()
 	{
 		milliseconds += ms;
 	}
@@ -167,7 +188,7 @@ void millis_add(millis_t ms)
 // Subtract time
 void millis_subtract(millis_t ms)
 {
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	MILLIS_ATOMIC()
 	{
 		milliseconds -= ms;
 	}
@@ -175,5 +196,19 @@ void millis_subtract(millis_t ms)
 
 ISR(ISR_VECT)
 {
+	// I'm using some ASM here because the C compiler is being derpy
+	// and generating larger code than needed.
+	// This ASM is the equivalent of the commented out C code below.
+	//REG_OCR += OCR_VAL;
+	register uint8_t tmp;
+	asm volatile(
+		"lds	%[_TMP], %[_OCR]\n\t"
+		"subi	%[_TMP], %[_VAL]\n\t"
+		"sts	%[_OCR1], %[_TMP]\n\t"
+		: [_OCR1] "=m" (REG_OCR), [_TMP] "=r" (tmp)
+		: [_VAL] "M" ((256 - OCR_VAL)), [_OCR] "i" (&REG_OCR)
+	);
+
+	//milliseconds += 4;
 	++milliseconds;
 }

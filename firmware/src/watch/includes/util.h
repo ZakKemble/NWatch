@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -8,6 +8,9 @@
 
 #ifndef UTIL_H_
 #define UTIL_H_
+
+#define UNUSED(var) ((void)(var))
+#define EMPTY_FUNC	((void)(0))
 
 #define noinline __attribute__ ((__noinline__))
 
@@ -61,18 +64,39 @@
 #define INPUT			bit_clr_concat
 #define pinMode(x, s)	s(DDR, x)
 
-#define PULLUP_ENABLE	bit_set_concat
-#define PULLUP_DISABLE	bit_clr_concat
+#define PU_EN	bit_set_concat
+#define PU_DIS	bit_clr_concat
 #define pinPullup(x, s) s(PORT, x)
 
 #define PINHIGH			true
 #define PINLOW			false
 #define pinRead(x)		bit_is_set_concat(PIN, x)
 
-#define bits_set(data, bits)	((data) |= (bits))
-#define bits_clr(data, bits)	((data) &= (~(bits)))
-#define bit_set(data, x)		bits_set((data), _BV(x))
-#define bit_clr(data, x)		bits_clr((data), _BV(x))
+//#define bits_set(data, bits)	((data) |= (bits))
+//#define bits_clr(data, bits)	((data) &= (~(bits)))
+//#define bit_set(data, x)		bits_set((data), _BV(x))
+//#define bit_clr(data, x)		bits_clr((data), _BV(x))
+
+// http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=60729&postdays=0&postorder=asc&start=20
+#define BITS7(arg, bits...) ((arg>=0)? (1 << (arg)):0)
+#define BITS6(arg, bits...) ((arg>=0)? (1 << (arg)):0) | \
+BITS7(bits, -1)
+#define BITS5(arg, bits...) ((arg>=0)? (1 << (arg)):0) | \
+BITS6(bits, -1)
+#define BITS4(arg, bits...) ((arg>=0)? (1 << (arg)):0) | \
+BITS5(bits, -1)
+#define BITS3(arg, bits...) ((arg>=0)? (1 << (arg)):0) | \
+BITS4(bits, -1)
+#define BITS2(arg, bits...) ((arg>=0)? (1 << (arg)):0) | \
+BITS3(bits, -1)
+#define BITS1(arg, bits...) ((arg>=0)? (1 << (arg)):0) | \
+BITS2(bits, -1)
+#define BITS0(arg, bits...) ((arg>=0)? (1 << (arg)):0) | \
+BITS1(bits, -1)
+
+#define SET_BITS(var, bits...)   var |=   BITS0(bits, -1)
+#define CLEAR_BITS(var, bits...) var &= ~(BITS0(bits, -1))
+#define LOAD_BITS(var, bits...)  var =    BITS0(bits, -1)
 
 #if PIN_DEBUG == PIN_DEBUG_DRAW
 #define debugPin_draw(state) pinWrite(PIN_DEBUG_PIN, state);

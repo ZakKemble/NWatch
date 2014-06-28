@@ -1,5 +1,5 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -9,10 +9,11 @@
 #ifndef OLED_H_
 #define OLED_H_
 
-#include "typedefs.h"
-
-#define OLED_PWR_OFF		false
-#define OLED_PWR_ON			true
+typedef enum
+{
+	OLED_PWR_OFF = 0,
+	OLED_PWR_ON = 1
+} oled_pwr_t;
 
 #define FRAME_WIDTH			128
 #define FRAME_HEIGHT		64
@@ -22,7 +23,7 @@ extern byte oledBuffer[];
 
 void oled_init(void);
 void oled_flush(void);
-void oled_power(bool);
+void oled_power(oled_pwr_t);
 void oled_setBrightness(byte);
 void oled_setInvert(bool);
 void oled_set180(bool);

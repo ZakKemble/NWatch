@@ -1,26 +1,14 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "typedefs.h"
-#include "menus/timedate.h"
-#include "display.h"
-#include "menu.h"
-#include "menus/functions.h"
-#include "time.h"
-#include "draw.h"
-#include "resources.h"
+#include "common.h"
 
-#define OPTION_COUNT		7
-#define OPTION_EXIT			OPTION_COUNT - 1
+#define OPTION_COUNT		6
 
 #define SETTING_NOW_NONE	0
 #define SETTING_NOW_10HOUR	1
@@ -34,13 +22,13 @@
 #define SETTING_NOW_YEAR10	8
 #define SETTING_NOW_YEAR1	9
 
-static s_prev_menu prevMenuData;
-static s_menuNowSetting setting;
-static s_time timeDataSet;
+static prev_menu_s prevMenuData;
+static time_s timeDataSet;
 
 static void mDown(void);
 static void mUp(void);
 static void mSelect(void);
+static void itemLoader(byte);
 static void selectDate(void);
 static void selectTime(void);
 static display_t dateDraw(void);
@@ -57,14 +45,10 @@ static void saveTimeDate(void);
 void mTimeDateOpen()
 {
 	// Create copy of current time & date
-	memcpy(&timeDataSet, &timeData, sizeof(s_time));
+	memcpy(&timeDataSet, &timeData, sizeof(time_s));
 
-	setMenuInfo(OPTION_COUNT, PSTR("  < TIME & DATE >"), MENU_TYPE_STR, mSelect, mUp, mDown);
-
-	showDateStr();
-	showTimeStr();
-	setMenuOption_P(5, PSTR("Save"), NULL, saveTimeDate);
-	setMenuOption_P(OPTION_EXIT, menuBack, NULL, back);
+	setMenuInfo(OPTION_COUNT, MENU_TYPE_STR, PSTR(STR_TIMEDATEMENU));
+	setMenuFuncs(mDown, mUp, mSelect, itemLoader);
 
 	setPrevMenuOpen(&prevMenuData, mTimeDateOpen);
 
@@ -75,136 +59,102 @@ void mTimeDateOpen()
 
 static void mDown()
 {
-	downOption();
+	nextOption();
 
 	// Some lines are blank, skip them
 	if(menuData.selected == 0 || menuData.selected == 2 || menuData.selected == 4)
-		downOption();
+		nextOption();
 }
 
 static void mUp()
 {
-	upOption();
+	prevOption();
 
 	// Some lines are blank, skip them
 	if(menuData.selected == 0 || menuData.selected == 2 || menuData.selected == 4)
-		upOption();
+		prevOption();
 }
 
 static void mSelect()
 {
-	setPrevMenuExit(&prevMenuData, OPTION_EXIT);
-	doAction(menuData.selected == OPTION_EXIT);
+	setPrevMenuExit(&prevMenuData);
+	doAction(exitSelected());
+}
+
+static void itemLoader(byte num)
+{
+	UNUSED(num);
+	showDateStr();
+	showTimeStr();
+	setMenuOption_P(5, PSTR(STR_SAVE), NULL, saveTimeDate);
+	addBackOption();
 }
 
 static void selectDate()
 {
-	menuData.downFunc = timeDataUp;
-	menuData.upFunc = timeDataDown;
-	menuData.drawFunc = dateDraw;
+	setMenuFuncs(timeDataDown, timeDataUp, mSelect, itemLoader);
+	menuData.func.draw = dateDraw;
 	switch(setting.now)
 	{
 		case SETTING_NOW_NONE:
 			setting.now = SETTING_NOW_DATE10;
-			setting.val = timeDataSet.date / 10;
+			setting.val = div10(timeDataSet.date);
 			break;
 		case SETTING_NOW_DATE10:
-			{
-				byte mod = timeDataSet.date % 10;
-				timeDataSet.date = (setting.val * 10) + mod;
-				setting.now = SETTING_NOW_DATE1;
-				setting.val = mod;
-			}
+			do10sStuff(&timeDataSet.date, SETTING_NOW_DATE1);
 			break;
 		case SETTING_NOW_DATE1:
-			timeDataSet.date = ((timeDataSet.date / 10) * 10) + setting.val;
+			do1sStuff(&timeDataSet.date, 31, SETTING_NOW_MONTH, timeDataSet.month);
 			if(timeDataSet.date < 1)
 				timeDataSet.date = 1;
-			else if(timeDataSet.date > 31)
-				timeDataSet.date = 31;
-			setting.now = SETTING_NOW_MONTH;
-			setting.val = timeDataSet.month;
 			break;
 		case SETTING_NOW_MONTH:
+		{
 			timeDataSet.month = setting.val;
-			byte maxDays = 31;
-			byte month = timeDataSet.month;
-			if(month == 3 || month == 5 || month == 8 || month == 10)
-				maxDays = 30;
-			else if(month == 1)
-				maxDays = time_isLeapYear(timeDataSet.year) ? 29 : 28;
-			if(timeDataSet.date > maxDays)
-				timeDataSet.date = maxDays;
+			byte numDays = time_monthDayCount(timeDataSet.month, timeDataSet.year);
+			if(timeDataSet.date > numDays)
+				timeDataSet.date = numDays;
 			setting.now = SETTING_NOW_YEAR10;
-			setting.val = timeDataSet.year / 10;
+			setting.val = div10(timeDataSet.year);
+		}
 			break;
 		case SETTING_NOW_YEAR10:
-			{
-				byte mod = timeDataSet.year % 10;
-				timeDataSet.year = (setting.val * 10) + mod;
-				setting.now = SETTING_NOW_YEAR1;
-				setting.val = mod;
-			}
+			do10sStuff(&timeDataSet.year, SETTING_NOW_YEAR1);
 			break;
 		default:
-			timeDataSet.year = ((timeDataSet.year / 10) * 10) + setting.val;
+			do1sStuff(&timeDataSet.year, 99, SETTING_NOW_NONE, 0);
 			timeDataSet.day = time_dow(timeDataSet.year + 2000, timeDataSet.month + 1, timeDataSet.date);
-			setting.now = SETTING_NOW_NONE;
-			menuData.downFunc = mUp;
-			menuData.upFunc	= mDown;
-			menuData.drawFunc = NULL;
+			setMenuFuncs(mDown, mUp, mSelect, itemLoader);
+			menuData.func.draw = NULL;
 			break;
 	}
-	
-	showDateStr();
 }
 
 static void selectTime()
 {
-	menuData.downFunc = timeDataUp;
-	menuData.upFunc = timeDataDown;
-	menuData.drawFunc = timeDraw;
+	setMenuFuncs(timeDataDown, timeDataUp, mSelect, itemLoader);
+	menuData.func.draw = timeDraw;
 	switch(setting.now)
 	{
 		case SETTING_NOW_NONE:
 			setting.now = SETTING_NOW_10HOUR;
-			setting.val = timeDataSet.hours / 10;
+			setting.val = div10(timeDataSet.hour);
 			break;
 		case SETTING_NOW_10HOUR:
-			{
-				byte mod = timeDataSet.hours % 10;
-				timeDataSet.hours = (setting.val * 10) + mod;
-				setting.now = SETTING_NOW_1HOUR;
-				setting.val = mod;
-			}
+			do10sStuff(&timeDataSet.hour, SETTING_NOW_1HOUR);
 			break;
 		case SETTING_NOW_1HOUR:
-			timeDataSet.hours = ((timeDataSet.hours / 10) * 10) + setting.val;
-			if(timeDataSet.hours > 23)
-				timeDataSet.hours = 23;
-			setting.now = SETTING_NOW_10MIN;
-			setting.val = timeDataSet.mins / 10;
+			do1sStuff(&timeDataSet.hour, 23, SETTING_NOW_10MIN, div10(timeDataSet.mins));
 			break;
 		case SETTING_NOW_10MIN:
-			{
-				byte mod = timeDataSet.mins % 10;
-				timeDataSet.mins = (setting.val * 10) + mod;
-				setting.now = SETTING_NOW_1MIN;
-				setting.val = mod;
-			}		
+			do10sStuff(&timeDataSet.mins, SETTING_NOW_1MIN);
 			break;
 		default:
-			timeDataSet.mins = ((timeDataSet.mins / 10) * 10) + setting.val;
-			if(timeDataSet.mins > 59)
-				timeDataSet.mins = 59;
-			setting.now = SETTING_NOW_NONE;
-			menuData.downFunc = mUp;
-			menuData.upFunc	= mDown;
-			menuData.drawFunc = NULL;
+			do1sStuff(&timeDataSet.mins, 59, SETTING_NOW_NONE, 0);
+			setMenuFuncs(mDown, mUp, mSelect, itemLoader);
+			menuData.func.draw = NULL;
 			break;
 	}
-
-	showTimeStr();
 }
 
 static display_t dateDraw()
@@ -230,7 +180,6 @@ static display_t dateDraw()
 			x = 98;
 			break;
 		default:
-			x = 0;
 			return DISPLAY_DONE;
 	}
 
@@ -264,7 +213,6 @@ static display_t timeDraw()
 			x = 77;
 			break;
 		default:
-			x = 0;
 			return DISPLAY_DONE;
 	}
 
@@ -295,41 +243,18 @@ static void timeDataDown()
 
 static byte getMaxValForSetting()
 {
-	byte max;
 	switch(setting.now)
 	{
 		case SETTING_NOW_10HOUR:
-			max = 2;
-			break;
-		case SETTING_NOW_1HOUR:
-			max = 9;
-			break;
+			return 2;
 		case SETTING_NOW_10MIN:
-			max = 5;
-			break;
-		case SETTING_NOW_1MIN:
-			max = 9;
-			break;
+			return 5;
 		case SETTING_NOW_DATE10:
-			max = 3;
-			break;
-		case SETTING_NOW_DATE1:
-			max = 9;
-			break;
+			return 3;
 		case SETTING_NOW_MONTH:
-			max = 11;
-			break;
-		case SETTING_NOW_YEAR10:
-			max = 9;
-			break;
-		case SETTING_NOW_YEAR1:
-			max = 9;
-			break;
-		default:
-			max = 9;
-			break;
+			return 11;
 	}
-	return max;
+	return 9;
 }
 
 static void showTimeStr()
@@ -348,7 +273,7 @@ static void showDateStr()
 
 static void makeTimeStr(char* buff)
 {
-	sprintf_P(buff, PSTR("%6s%02hhu:%02hhu"), "", timeDataSet.hours, timeDataSet.mins);
+	sprintf_P(buff, PSTR("%6s%02hhu:%02hhu"), "", timeDataSet.hour, timeDataSet.mins);
 }
 
 static void makeDateStr(char* buff)

@@ -1,26 +1,12 @@
 /*
- * Project: Digital Wristwatch
+ * Project: N|Watch
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2013 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include <avr/pgmspace.h>
-#include <stdio.h>
-#include <string.h>
 #include "common.h"
-#include "display.h"
-#include "devices/oled.h"
-#include "millis/millis.h"
-#include "draw.h"
-#include "resources.h"
-#include "menu.h"
-#include "time.h"
-#include "watchface.h"
-#include "animation.h"
-#include "pwrmgr.h"
-#include "watchconfig.h"
 
 // Frame rate when stuff is happening
 // If this is too low then animations will be jerky
@@ -34,6 +20,10 @@
 #define FRAME_RATE_MS		((byte)(1000 / FRAME_RATE))
 #define FRAME_RATE_LOW_MS	((byte)(1000 / FRAME_RATE_LOW))
 
+static draw_f drawFunc;
+static display_f func;
+
+#if COMPILE_ANIMATIONS
 typedef struct{
 	byte height;
 	bool closing;
@@ -41,20 +31,30 @@ typedef struct{
 	byte lineWidth;
 	byte lineClosing;
 	bool active;
-}s_crt_anim;
+}crt_anim_s;
 
-/*
-static const byte crtdot[] PROGMEM ={
-	0x18,0x3C,0x7E,0x7E,0x3C,0x18,
-};
-
-static s_image crtdotImage = {(FRAME_WIDTH / 2) - 3, (FRAME_HEIGHT / 2) - 4, crtdot, 6, 8, WHITE, NOINVERT, 0};
-*/
-
-static s_crt_anim crt_anim;
-static draw_f drawFunc;
+static crt_anim_s crt_anim;
 
 static void crt_animation(void);
+#endif
+
+void display_set(display_f faceFunc)
+{
+	func = faceFunc;
+}
+
+void display_load()
+{
+	if(func != NULL)
+		func();
+}
+
+draw_f display_setDrawFunc(draw_f func)
+{
+	draw_f old = drawFunc;
+	drawFunc = func;
+	return old;
+}
 
 void display_update()
 {
@@ -72,10 +72,11 @@ void display_update()
 
 	debugPin_draw(HIGH);
 
+	display_t busy = DISPLAY_DONE;
+
+#if COMPILE_ANIMATIONS
 	// Update animations
 	animation_update();
-
-	display_t busy = DISPLAY_DONE;
 
 	// Draw stuff
 	if(drawFunc != NULL && (crt_anim.active || (!crt_anim.active && !crt_anim.closing)))
@@ -86,8 +87,12 @@ void display_update()
 		crt_animation();
 
 	busy = busy || crt_anim.active || animation_active();
+#else
+	if(drawFunc != NULL)
+		busy = drawFunc();
+#endif
 
-	if(watchConfig.showFPS)
+	if(appConfig.showFPS)
 	{
 		// Work out & draw FPS, add 2ms (actually 2.31ms) for time it takes to send to OLED, clear buffer etc
 		// This is only approximate
@@ -96,7 +101,7 @@ void display_update()
 		sprintf_P(buff, PSTR("%u"), (uint)(1000 / (millis8_t)(end - now)));
 		draw_string(buff,false,107,56);
 	}
-
+	
 	// End drawing, send to OLED
 	draw_end();
 
@@ -115,22 +120,16 @@ void display_update()
 	}
 }
 
-draw_f display_setDrawFunc(draw_f func)
+#if COMPILE_ANIMATIONS
+void display_startCRTAnim(crtAnim_t open)
 {
-	draw_f old = drawFunc;
-	drawFunc = func;
-	return old;
-}
-
-void display_startCRTAnim(bool open)
-{
-	if(!watchConfig.animations)
+	if(!appConfig.animations)
 	{
 		crt_anim.active = false;
 		return;
 	}
 
-	if(open)
+	if(open == CRTANIM_OPEN)
 	{
 		crt_anim.closing = false;
 		crt_anim.doingLine = true;
@@ -151,23 +150,26 @@ void display_startCRTAnim(bool open)
 
 static void crt_animation()
 {
+	byte height = crt_anim.height;
+	byte lineWidth = crt_anim.lineWidth;
+	
 	if(!crt_anim.doingLine)
 	{
 		if(crt_anim.closing)
-			crt_anim.height += 3;
+			height += 3;
 		else
-			crt_anim.height -= 3;
+			height -= 3;
 
-		if(crt_anim.height >= FRAME_HEIGHT / 2)
+		if(height >= FRAME_HEIGHT / 2)
 		{
 			if(crt_anim.closing)
 			{
-				crt_anim.height = FRAME_HEIGHT / 2;
+				height = FRAME_HEIGHT / 2;
 				crt_anim.doingLine = true;
 			}
 			else
 			{
-				crt_anim.height = 0;
+				height = 0;
 				crt_anim.active = false;
 			}				
 			//crt_anim.closing = !crt_anim.closing;
@@ -176,16 +178,16 @@ static void crt_animation()
 	else
 	{
 		if(crt_anim.lineClosing)
-			crt_anim.lineWidth -= 6;
+			lineWidth -= 6;
 		else
-			crt_anim.lineWidth += 10;
+			lineWidth += 10;
 
-		if(crt_anim.lineWidth >= FRAME_WIDTH)
+		if(lineWidth >= FRAME_WIDTH)
 		{
 			if(crt_anim.lineClosing)
-				crt_anim.lineWidth = 0;
+				lineWidth = 0;
 			else
-				crt_anim.lineWidth = FRAME_WIDTH;
+				lineWidth = FRAME_WIDTH;
 
 			if(!crt_anim.lineClosing)
 				crt_anim.doingLine = false;
@@ -198,14 +200,14 @@ static void crt_animation()
 	}
 
 	// Full rows
-	byte rows = crt_anim.height / 8;
+	byte rows = height / 8;
 	LOOP(rows, i)
 	{
 		memset(&oledBuffer[i * FRAME_WIDTH], 0, FRAME_WIDTH);
 		memset(&oledBuffer[FRAME_BUFFER_SIZE - FRAME_WIDTH - (i * FRAME_WIDTH)], 0, FRAME_WIDTH);
 	}
 
-	byte prows = crt_anim.height % 8;
+	byte prows = height % 8;
 	if(prows) // Partial rows & edge line
 	{
 		uint idxStart = rows * FRAME_WIDTH;
@@ -223,19 +225,23 @@ static void crt_animation()
 			idxEnd--;
 		}
 	}
-	else if(crt_anim.height) // Edge line
+	else if(height) // Edge line
 	{
-		uint pos = ((byte)(FRAME_WIDTH - crt_anim.lineWidth) / 2) + ((byte)(FRAME_HEIGHT - crt_anim.height) / 8) * FRAME_WIDTH;
-		memset(&oledBuffer[pos], 0x01, crt_anim.lineWidth);
+		uint pos = ((byte)(FRAME_WIDTH - lineWidth) / 2) + ((byte)(FRAME_HEIGHT - height) / 8) * FRAME_WIDTH;
+		memset(&oledBuffer[pos], 0x01, lineWidth);
 
-		if(crt_anim.height != FRAME_HEIGHT / 2)
+		if(height != FRAME_HEIGHT / 2)
 		{
-			pos = (crt_anim.height / 8) * FRAME_WIDTH;
+			pos = (height / 8) * FRAME_WIDTH;
 			LOOPR(FRAME_WIDTH, x)
 				oledBuffer[pos + x] |= 0x01;
 		}		
 	}
+	
+	crt_anim.height = height;
+	crt_anim.lineWidth = lineWidth;
 
 //	if(crt_anim.doingLine && crt_anim.closing)
 //		draw_bitmap_s2(&crtdotImage);
 }
+#endif

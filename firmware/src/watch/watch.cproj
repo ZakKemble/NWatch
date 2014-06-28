@@ -2,8 +2,8 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectVersion>6.0</ProjectVersion>
-    <ToolchainName>com.Atmel.AVRGCC8</ToolchainName>
+    <ProjectVersion>6.1</ProjectVersion>
+    <ToolchainName>com.Atmel.AVRGCC8.C</ToolchainName>
     <ProjectGuid>{6ce6ca08-5c90-4783-85fd-87623f6dabb4}</ProjectGuid>
     <avrdevice>ATmega328P</avrdevice>
     <avrdeviceseries>none</avrdeviceseries>
@@ -18,7 +18,7 @@
     <ToolchainFlavour>AVR-GCC 4.7.2</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
-    <OverrideVtorValue />
+    <OverrideVtorValue>exception_table</OverrideVtorValue>
     <eraseonlaunchrule>0</eraseonlaunchrule>
     <AsfVersion>3.1.3</AsfVersion>
     <avrtoolinterface />
@@ -39,51 +39,24 @@
         <ssl>False</ssl>
       </Channel>
     </com_atmel_avrdbg_tool_simulator>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <ToolchainSettings>
-      <AvrGcc>
-        <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
-        <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
-        <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
-        <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
-        <avrgcc.compiler.general.SubroutinesFunctionPrologues>True</avrgcc.compiler.general.SubroutinesFunctionPrologues>
-        <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
-        <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
-        <avrgcc.compiler.symbols.DefSymbols>
-          <ListValues>
-            <Value>F_CPU=8000000UL</Value>
-            <Value>CPU_DIV=clock_div_1</Value>
-          </ListValues>
-        </avrgcc.compiler.symbols.DefSymbols>
-        <avrgcc.compiler.directories.IncludePaths>
-          <ListValues>
-            <Value>../includes</Value>
-          </ListValues>
-        </avrgcc.compiler.directories.IncludePaths>
-        <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
-        <avrgcc.compiler.optimization.OtherFlags>-fno-tree-scev-cprop -ffreestanding</avrgcc.compiler.optimization.OtherFlags>
-        <avrgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</avrgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
-        <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
-        <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
-        <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
-        <avrgcc.linker.libraries.Libraries>
-          <ListValues>
-            <Value>m</Value>
-          </ListValues>
-        </avrgcc.linker.libraries.Libraries>
-        <avrgcc.linker.optimization.GarbageCollectUnusedSections>True</avrgcc.linker.optimization.GarbageCollectUnusedSections>
-        <avrgcc.linker.optimization.RelaxBranches>True</avrgcc.linker.optimization.RelaxBranches>
-      </AvrGcc>
-    </ToolchainSettings>
+    <CacheFlash>true</CacheFlash>
+    <ProgFlashFromRam>true</ProgFlashFromRam>
+    <RamSnippetAddress>0x20000000</RamSnippetAddress>
+    <UncachedRange />
+    <BootSegment>2</BootSegment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <UsesExternalMakeFile>False</UsesExternalMakeFile>
+    <ExternalMakeFilePath>
+    </ExternalMakeFilePath>
     <ToolchainSettings>
       <AvrGcc>
+        <avrgcc.common.optimization.RelaxBranches>True</avrgcc.common.optimization.RelaxBranches>
         <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
         <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
         <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
         <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+        <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
         <avrgcc.compiler.general.SubroutinesFunctionPrologues>True</avrgcc.compiler.general.SubroutinesFunctionPrologues>
         <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
         <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
@@ -99,8 +72,7 @@
           </ListValues>
         </avrgcc.compiler.directories.IncludePaths>
         <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
-        <avrgcc.compiler.optimization.OtherFlags>-fno-tree-scev-cprop -ffreestanding</avrgcc.compiler.optimization.OtherFlags>
-        <avrgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</avrgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
+        <avrgcc.compiler.optimization.OtherFlags>-fno-tree-scev-cprop -ffreestanding -fno-exceptions -maccumulate-args</avrgcc.compiler.optimization.OtherFlags>
         <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
         <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
         <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
@@ -108,12 +80,46 @@
         <avrgcc.compiler.miscellaneous.OtherFlags>-std=gnu99 -Wstrict-prototypes -Wextra</avrgcc.compiler.miscellaneous.OtherFlags>
         <avrgcc.linker.libraries.Libraries>
           <ListValues>
-            <Value>m</Value>
+            <Value>libm</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
-        <avrgcc.linker.optimization.GarbageCollectUnusedSections>True</avrgcc.linker.optimization.GarbageCollectUnusedSections>
-        <avrgcc.linker.optimization.RelaxBranches>True</avrgcc.linker.optimization.RelaxBranches>
         <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
+      </AvrGcc>
+    </ToolchainSettings>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <ToolchainSettings>
+      <AvrGcc>
+        <avrgcc.common.optimization.RelaxBranches>True</avrgcc.common.optimization.RelaxBranches>
+        <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+        <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+        <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+        <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+        <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
+        <avrgcc.compiler.general.SubroutinesFunctionPrologues>True</avrgcc.compiler.general.SubroutinesFunctionPrologues>
+        <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+        <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+        <avrgcc.compiler.symbols.DefSymbols>
+          <ListValues>
+            <Value>F_CPU=8000000UL</Value>
+            <Value>CPU_DIV=clock_div_1</Value>
+          </ListValues>
+        </avrgcc.compiler.symbols.DefSymbols>
+        <avrgcc.compiler.directories.IncludePaths>
+          <ListValues>
+            <Value>../includes</Value>
+          </ListValues>
+        </avrgcc.compiler.directories.IncludePaths>
+        <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+        <avrgcc.compiler.optimization.OtherFlags>-fno-tree-scev-cprop -ffreestanding -fno-exceptions -fdata-sections -maccumulate-args</avrgcc.compiler.optimization.OtherFlags>
+        <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+        <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+        <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+        <avrgcc.linker.libraries.Libraries>
+          <ListValues>
+            <Value>libm</Value>
+          </ListValues>
+        </avrgcc.linker.libraries.Libraries>
       </AvrGcc>
     </ToolchainSettings>
   </PropertyGroup>
@@ -127,7 +133,13 @@
     <None Include="watch.c">
       <SubType>compile</SubType>
     </None>
+    <Compile Include="apps\btrccar.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="apps\calc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="apps\screenshot.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="apps\stopwatch.c">
@@ -139,7 +151,34 @@
     <Compile Include="apps\tunemaker.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="devices\ds1307.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="devices\mcp7940x.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="disco.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="discos.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\adc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\rtc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="games\game3.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\apps\btrccar.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="includes\apps\calc.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\apps\screenshot.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="includes\apps\stopwatch.h">
@@ -151,19 +190,73 @@
     <Compile Include="includes\apps\tunemaker.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="includes\debug.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\devices\ds1307.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\devices\ds1307_defs.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="includes\devices\ds3231_defs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\devices\mcp7940x.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\devices\mcp7940x_defs.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="includes\devices\oled_defs.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="includes\devices\rtc_funcs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\disco.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\discos.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\drivers\adc.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\drivers\rtc.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\games\game3.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\lang.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\lang\english.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\lang\german.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="includes\menus\functions.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="watchconfig.c">
+    <Compile Include="appconfig.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="watchface.c">
+    <Compile Include="includes\millis\millis_config.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\tune.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\tunes.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tune.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tunes.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="watchfaces\normal.c">
@@ -232,10 +325,7 @@
     <Compile Include="includes\animation.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="includes\watchconfig.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="includes\watchface.h">
+    <Compile Include="includes\appconfig.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="includes\watchfaces\normal.h">
@@ -394,6 +484,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="includes\apps" />
+    <Folder Include="includes\lang" />
     <Folder Include="includes\watchfaces" />
     <Folder Include="includes\devices" />
     <Folder Include="includes\drivers" />
