@@ -1,0 +1,27 @@
+This is the software todo list. A different microcontroller with more program space is needed first.
+
+Tidy up code (mostly menu stuff)
+Alarm snooze
+Options for alarm snooze
+Improve alarms menu
+	- Use new WE/TU icon things
+	- Enabled icon (tick symbol)
+Improve games menu
+Options for setting what up and down buttons do when on the main watch display (open stopwatch/alarms/games etc)
+Make menu option name animated, move off then back on or something
+sleep mode options
+	- Off
+	- Low power (dim screen)
+Instead of loading all alarms from EEPROM to RAM at startup, just load from EEPROM as needed
+Reduce CPU clock if animations are disabled (and at other times too?)
+Update the display less often (saves power)
+	- Only draw when needed
+	- Seperate logic and drawing
+Sometimes the sounder 'pops' due to bad waveform output
+Sometimes the watch turns on the display when its not supposed to (system alarm - hour beeps)
+Options for LEDs (brightness etc)
+Fancy USB plugged in screen anim?
+Option for 12 hour time
+Delay battery voltage measurement when waking up
+Countdown timer
+More games?

@@ -1,0 +1,413 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>6.0</ProjectVersion>
+    <ToolchainName>com.Atmel.AVRGCC8</ToolchainName>
+    <ProjectGuid>{6ce6ca08-5c90-4783-85fd-87623f6dabb4}</ProjectGuid>
+    <avrdevice>ATmega328P</avrdevice>
+    <avrdeviceseries>none</avrdeviceseries>
+    <OutputType>Executable</OutputType>
+    <Language>C</Language>
+    <OutputFileName>$(MSBuildProjectName)</OutputFileName>
+    <OutputFileExtension>.elf</OutputFileExtension>
+    <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
+    <AssemblyName>watch</AssemblyName>
+    <Name>watch</Name>
+    <RootNamespace>watch</RootNamespace>
+    <ToolchainFlavour>AVR-GCC 4.7.2</ToolchainFlavour>
+    <KeepTimersRunning>true</KeepTimersRunning>
+    <OverrideVtor>false</OverrideVtor>
+    <OverrideVtorValue />
+    <eraseonlaunchrule>0</eraseonlaunchrule>
+    <AsfVersion>3.1.3</AsfVersion>
+    <avrtoolinterface />
+    <avrtool>
+    </avrtool>
+    <com_atmel_avrdbg_tool_simulator>
+      <ToolType>com.atmel.avrdbg.tool.simulator</ToolType>
+      <ToolName>AVR Simulator</ToolName>
+      <ToolNumber>
+      </ToolNumber>
+      <KeepTimersRunning>true</KeepTimersRunning>
+      <OverrideVtor>false</OverrideVtor>
+      <OverrideVtorValue>
+      </OverrideVtorValue>
+      <Channel>
+        <host>127.0.0.1</host>
+        <port>57480</port>
+        <ssl>False</ssl>
+      </Channel>
+    </com_atmel_avrdbg_tool_simulator>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <ToolchainSettings>
+      <AvrGcc>
+        <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+        <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+        <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+        <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+        <avrgcc.compiler.general.SubroutinesFunctionPrologues>True</avrgcc.compiler.general.SubroutinesFunctionPrologues>
+        <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+        <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+        <avrgcc.compiler.symbols.DefSymbols>
+          <ListValues>
+            <Value>F_CPU=8000000UL</Value>
+            <Value>CPU_DIV=clock_div_1</Value>
+          </ListValues>
+        </avrgcc.compiler.symbols.DefSymbols>
+        <avrgcc.compiler.directories.IncludePaths>
+          <ListValues>
+            <Value>../includes</Value>
+          </ListValues>
+        </avrgcc.compiler.directories.IncludePaths>
+        <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+        <avrgcc.compiler.optimization.OtherFlags>-fno-tree-scev-cprop -ffreestanding</avrgcc.compiler.optimization.OtherFlags>
+        <avrgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</avrgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
+        <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+        <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+        <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+        <avrgcc.linker.libraries.Libraries>
+          <ListValues>
+            <Value>m</Value>
+          </ListValues>
+        </avrgcc.linker.libraries.Libraries>
+        <avrgcc.linker.optimization.GarbageCollectUnusedSections>True</avrgcc.linker.optimization.GarbageCollectUnusedSections>
+        <avrgcc.linker.optimization.RelaxBranches>True</avrgcc.linker.optimization.RelaxBranches>
+      </AvrGcc>
+    </ToolchainSettings>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <ToolchainSettings>
+      <AvrGcc>
+        <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+        <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+        <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+        <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+        <avrgcc.compiler.general.SubroutinesFunctionPrologues>True</avrgcc.compiler.general.SubroutinesFunctionPrologues>
+        <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+        <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+        <avrgcc.compiler.symbols.DefSymbols>
+          <ListValues>
+            <Value>F_CPU=8000000UL</Value>
+            <Value>CPU_DIV=clock_div_1</Value>
+          </ListValues>
+        </avrgcc.compiler.symbols.DefSymbols>
+        <avrgcc.compiler.directories.IncludePaths>
+          <ListValues>
+            <Value>../includes</Value>
+          </ListValues>
+        </avrgcc.compiler.directories.IncludePaths>
+        <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+        <avrgcc.compiler.optimization.OtherFlags>-fno-tree-scev-cprop -ffreestanding</avrgcc.compiler.optimization.OtherFlags>
+        <avrgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</avrgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
+        <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+        <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+        <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
+        <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+        <avrgcc.compiler.miscellaneous.OtherFlags>-std=gnu99 -Wstrict-prototypes -Wextra</avrgcc.compiler.miscellaneous.OtherFlags>
+        <avrgcc.linker.libraries.Libraries>
+          <ListValues>
+            <Value>m</Value>
+          </ListValues>
+        </avrgcc.linker.libraries.Libraries>
+        <avrgcc.linker.optimization.GarbageCollectUnusedSections>True</avrgcc.linker.optimization.GarbageCollectUnusedSections>
+        <avrgcc.linker.optimization.RelaxBranches>True</avrgcc.linker.optimization.RelaxBranches>
+        <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
+      </AvrGcc>
+    </ToolchainSettings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="alarm.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="animation.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="watch.c">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="apps\calc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="apps\stopwatch.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="apps\torch.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="apps\tunemaker.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\apps\calc.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\apps\stopwatch.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\apps\torch.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\apps\tunemaker.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\devices\ds3231_defs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\devices\oled_defs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\menus\functions.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="watchconfig.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="watchface.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="watchfaces\normal.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="watchfaces\segment.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="watchfaces\small.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="watchfaces\ui.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="devices\battery.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="devices\buttons.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="devices\buzzer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="devices\ds3231.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="devices\led.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="devices\oled.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="display.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="draw.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="resources.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\i2c.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\spi.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\uart.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\wdt.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="games\game1.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="games\game2.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="global.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\alarm.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\animation.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\watchconfig.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\watchface.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\watchfaces\normal.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\watchfaces\segment.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\watchfaces\small.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\watchfaces\ui.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\common.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\config.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\devices\battery.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\devices\buttons.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\devices\buzzer.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\devices\ds3231.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\devices\led.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\devices\oled.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\display.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\draw.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\resources.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\drivers\i2c.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\drivers\spi.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\drivers\uart.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\drivers\wdt.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\games\game1.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\games\game2.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\global.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\menu.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\menus\alarms.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\menus\diag.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\menus\display.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\menus\games.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\menus\main.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\menus\settings.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\menus\sleep.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\menus\sound.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\menus\timedate.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\millis\millis.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\pwrmgr.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\time.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\typedefs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="includes\util.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="menu.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="menus\diag.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="menus\display.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="menus\games.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="menus\main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="menus\alarms.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="menus\settings.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="menus\sleep.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="menus\sound.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="menus\timedate.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="millis\millis.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="pwrmgr.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="time.c">
+      <SubType>compile</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="includes\apps" />
+    <Folder Include="includes\watchfaces" />
+    <Folder Include="includes\devices" />
+    <Folder Include="includes\drivers" />
+    <Folder Include="includes\games" />
+    <Folder Include="includes\menus" />
+    <Folder Include="includes\millis" />
+    <Folder Include="millis" />
+    <Folder Include="menus" />
+    <Folder Include="games" />
+    <Folder Include="apps" />
+    <Folder Include="watchfaces" />
+    <Folder Include="includes" />
+    <Folder Include="devices" />
+    <Folder Include="drivers" />
+  </ItemGroup>
+  <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
+</Project>
