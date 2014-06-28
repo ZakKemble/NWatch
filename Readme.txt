@@ -1,15 +1,16 @@
-DIY Digital Wristwatch
+N|Watch - DIY Digital Wristwatch
 http://blog.zakkemble.co.uk/diy-digital-wristwatch/
 
 The firmware .hex and .eep files are compiled for ATmega328P
 
 Fuses for ATmega328/328P
-Internal RC 8MHz 6 CK/14CK + 4.1ms startup
+Internal RC 8MHz 6 CK/14CK + 65ms startup
+Bootloader enabled, 256 words (512 bytes)
 Serial program (SPI) enabled
 Brown-out at 1.8V
-High:		0xDF
-Low:		0xD2
-Extended:	0xFE
+High:		0xDE
+Low:		0xE2
+Extended:	0x06
 
 ./utils/bitmapConverter.exe
 Utility to convert images (in ./imgs/) to pixel byte array

@@ -1,2 +1,21 @@
 2013-09-25:
 	- Initial release
+
+2014-06-28:
+	Software:
+	- Added a bootloader (slightly modified Optiboot, added support for ATmega328 non-P and reading/writing EEPROM)
+	- Reduced flash and RAM usage (Flash: 29156 -> 26702 (2454), RAM: 1407 -> 1300 (107))
+	- Added support for playing tunes
+	- Alarms are loaded from EEPROM as needed instead of having them hanging around in RAM all the time
+	- Lots of bug fixes, heres some:
+		Wonkiness if EEPROM wasn't programmed
+		Alarms not going off on the correct day
+		If an alarm goes off but is not cancelled by the user the watch would stay on
+		Watch waking up when it's not supposed to
+	- Bunch more stuff...
+
+	Hardware (v1.3):
+	- 3 Separate buttons instead of a 3 way nav button
+	- MOSFETs have been changed to more suitable types (DMG6968s were total overkill)
+	- Thinner PCB traces allowing components to be packed closer together
+	- Breakout pads for power, I2C, UART and SPI
