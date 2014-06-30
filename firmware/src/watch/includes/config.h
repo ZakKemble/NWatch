@@ -24,7 +24,7 @@
 #define HW_VERSION	3
 
 // Firmware version
-#define FW_VERSION	"1.1 20140628" // maybe use some __DATE__ __TIME__ stuff?
+#define FW_VERSION	"1.1 20140630" // maybe use some __DATE__ __TIME__ stuff?
 
 // Language
 // 0 = English

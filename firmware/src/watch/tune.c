@@ -44,6 +44,7 @@ void tune_play(const tune_t* _tune, vol_t _vol, tonePrio_t _prio)
 void tune_stop(tonePrio_t _prio)
 {
 	buzzer_buzz(0, TONE_STOP, VOL_OTHER, _prio, NULL);
+	prio = PRIO_MIN;
 }
 
 static void next()

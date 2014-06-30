@@ -35,6 +35,7 @@ void disco_play(const disco_t* _disco, discoPrio_t _prio)
 void disco_stop(discoPrio_t _prio)
 {
 //	buzzer_buzz(0, TONE_STOP, _prio, NULL);
+	prio = PRIO_MIN;
 }
 
 static void next()

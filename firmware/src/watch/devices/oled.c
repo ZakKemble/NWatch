@@ -120,6 +120,7 @@ static void sendCmd(byte cmd)
 	}		
 }
 
+#warning "dont forget me"
 #include "apps/screenshot.h"
 void oled_flush()
 {
@@ -192,4 +193,3 @@ void oled_set180(bool rotate)
 	else
 		sendCmd2(OLED_SEG_NML, OLED_SCANDIR_NML);
 }
-

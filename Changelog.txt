@@ -1,5 +1,5 @@
-2013-09-25:
-	- Initial release
+2014-06-30:
+	- Fixed tune priority not resetting
 
 2014-06-28:
 	Software:
@@ -19,3 +19,6 @@
 	- MOSFETs have been changed to more suitable types (DMG6968s were total overkill)
 	- Thinner PCB traces allowing components to be packed closer together
 	- Breakout pads for power, I2C, UART and SPI
+
+2013-09-25:
+	- Initial release

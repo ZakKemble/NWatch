@@ -20,6 +20,7 @@ Options for LEDs (brightness etc)
 Fancy USB plugged in screen anim?
 Countdown timer
 More games?
+Option to return to main diplay after going into standby
 
 Finish support for 12 hour time
 Finish support for DS1307, MCP7940x and internal RTC sources
