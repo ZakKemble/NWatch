@@ -1075,7 +1075,7 @@ Please make sure your boards conform to these design rules.</description>
 <attribute name="NAME" x="58.07075" y="25.74925" size="0.8128" layer="25" ratio="18"/>
 <attribute name="VALUE" x="59.40425" y="26.63825" size="0.4064" layer="27" ratio="10" rot="R180"/>
 </element>
-<element name="D1" library="zak" package="SOD-323" value="ZLLS410" x="56.8325" y="20.6375" smashed="yes" rot="MR90">
+<element name="D1" library="zak" package="SOD-323" value="BAT60JFILM" x="56.8325" y="20.6375" smashed="yes" rot="MR90">
 <attribute name="NAME" x="58.53125" y="22.3725" size="0.8128" layer="26" ratio="18" rot="MR270"/>
 <attribute name="VALUE" x="55.0405" y="19.5375" size="0.4064" layer="28" ratio="10" rot="MR90"/>
 </element>

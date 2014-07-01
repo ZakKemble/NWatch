@@ -3089,7 +3089,7 @@ QFN is non-stock</description>
 <part name="GND14" library="supply1" deviceset="GND" device=""/>
 <part name="LS1" library="zak" deviceset="ABMT-801-RC" device="" value=""/>
 <part name="D2" library="diode0805" deviceset="DIODE0805" device="" value="TS4148 RY"/>
-<part name="D1" library="zak" deviceset="DIODE-SCHOTTKY" device="SOD-323" value="ZLLS410"/>
+<part name="D1" library="zak" deviceset="DIODE-SCHOTTKY" device="SOD-323" value="BAT60JFILM"/>
 <part name="R4" library="microbuilder" deviceset="RESISTOR" device="0805" value="100R"/>
 <part name="U4" library="zak" deviceset="MCP1700T-2502E/TT" device="WIDE_PAD" value="XC6206P252MR"/>
 <part name="Q4" library="microbuilder" deviceset="MOSFET-N" device="WIDE" value="NX3008NBK"/>
@@ -3138,7 +3138,7 @@ battery power is not constantly wasted
 through the divider.</text>
 <text x="220.98" y="104.14" size="1.778" layer="97">RTC</text>
 <text x="119.38" y="251.46" size="1.778" layer="97">Load sharing</text>
-<text x="142.24" y="101.6" size="1.778" layer="97">Sounder control</text>
+<text x="147.32" y="101.6" size="1.778" layer="97">Sounder control</text>
 <text x="292.1" y="73.66" size="1.778" layer="97">C11: 16V, X7R</text>
 <text x="193.04" y="172.72" size="1.778" layer="97">Breakout pads</text>
 <text x="307.34" y="200.66" size="1.778" layer="97">RN3:
@@ -3197,14 +3197,14 @@ through the divider.</text>
 <instance part="U2" gate="G$1" x="236.22" y="119.38"/>
 <instance part="GND31" gate="1" x="215.9" y="114.3"/>
 <instance part="R2" gate="G$1" x="264.16" y="210.82" rot="R180"/>
-<instance part="+3V1" gate="G$1" x="195.58" y="132.08" rot="R90"/>
+<instance part="+3V1" gate="G$1" x="193.04" y="132.08" rot="R90"/>
 <instance part="Q2" gate="G$1" x="294.64" y="231.14"/>
 <instance part="U1" gate="G$1" x="68.58" y="127"/>
 <instance part="GND20" gate="1" x="35.56" y="96.52"/>
 <instance part="+3V10" gate="G$1" x="33.02" y="144.78" rot="R90"/>
 <instance part="FRAME2" gate="G$1" x="0" y="0"/>
-<instance part="C7" gate="G$1" x="200.66" y="127"/>
-<instance part="GND3" gate="1" x="200.66" y="121.92"/>
+<instance part="C7" gate="G$1" x="198.12" y="124.46"/>
+<instance part="GND3" gate="1" x="198.12" y="114.3"/>
 <instance part="C5" gate="G$1" x="22.86" y="144.78"/>
 <instance part="RN1" gate="G$1" x="160.02" y="185.42" rot="R90"/>
 <instance part="RN1" gate="G$2" x="165.1" y="185.42" rot="R90"/>
@@ -3217,24 +3217,24 @@ through the divider.</text>
 <instance part="GND2" gate="1" x="137.16" y="167.64"/>
 <instance part="R1" gate="G$1" x="99.06" y="226.06" rot="R90"/>
 <instance part="GND14" gate="1" x="99.06" y="218.44"/>
-<instance part="LS1" gate="G$1" x="134.62" y="119.38" rot="R270"/>
+<instance part="LS1" gate="G$1" x="139.7" y="119.38" rot="R270"/>
 <instance part="D2" gate="G$1" x="38.1" y="160.02" rot="R90"/>
 <instance part="D1" gate="G$1" x="134.62" y="243.84" rot="R270"/>
-<instance part="R4" gate="G$1" x="114.3" y="104.14" rot="R180"/>
+<instance part="R4" gate="G$1" x="121.92" y="104.14" rot="R180"/>
 <instance part="U4" gate="A" x="200.66" y="236.22"/>
-<instance part="Q4" gate="G$1" x="132.08" y="106.68"/>
-<instance part="GND11" gate="1" x="134.62" y="86.36"/>
-<instance part="LED1" gate="G$1" x="114.3" y="116.84"/>
-<instance part="LED2" gate="G$1" x="121.92" y="114.3"/>
-<instance part="GND18" gate="1" x="127" y="111.76"/>
+<instance part="Q4" gate="G$1" x="137.16" y="106.68"/>
+<instance part="GND11" gate="1" x="139.7" y="86.36"/>
+<instance part="LED1" gate="G$1" x="116.84" y="114.3"/>
+<instance part="LED2" gate="G$1" x="124.46" y="111.76"/>
+<instance part="GND18" gate="1" x="129.54" y="109.22"/>
 <instance part="Q3" gate="G$1" x="274.32" y="213.36"/>
 <instance part="R3" gate="G$1" x="276.86" y="226.06" rot="R270"/>
 <instance part="GND12" gate="1" x="276.86" y="193.04"/>
-<instance part="GND28" gate="1" x="124.46" y="86.36"/>
+<instance part="GND28" gate="1" x="129.54" y="86.36"/>
 <instance part="P+1" gate="VCC" x="147.32" y="238.76" rot="R270"/>
 <instance part="P+2" gate="VCC" x="180.34" y="238.76" rot="R90"/>
 <instance part="P+3" gate="VCC" x="281.94" y="152.4" rot="R90"/>
-<instance part="P+4" gate="VCC" x="134.62" y="129.54"/>
+<instance part="P+4" gate="VCC" x="139.7" y="129.54"/>
 <instance part="SW1" gate="G$1" x="127" y="172.72"/>
 <instance part="SW3" gate="G$1" x="127" y="147.32"/>
 <instance part="SW2" gate="G$1" x="127" y="160.02"/>
@@ -3266,13 +3266,13 @@ through the divider.</text>
 <attribute name="NAME" x="196.2658" y="194.183" size="1.778" layer="95" rot="MR270" display="off"/>
 <attribute name="VALUE" x="201.422" y="194.183" size="1.778" layer="96" rot="MR270"/>
 </instance>
-<instance part="RN2" gate="G$1" x="124.46" y="96.52" rot="R270"/>
+<instance part="RN2" gate="G$1" x="129.54" y="96.52" rot="R270"/>
 <instance part="RN2" gate="G$3" x="157.48" y="241.3" rot="R270"/>
 <instance part="RN2" gate="G$4" x="147.32" y="248.92" rot="R180"/>
 <instance part="RN3" gate="G$4" x="294.64" y="203.2" rot="R90"/>
 <instance part="RN3" gate="G$3" x="294.64" y="218.44" rot="R270"/>
 <instance part="RN3" gate="G$1" x="276.86" y="241.3" rot="R90"/>
-<instance part="D3" gate="G$1" x="147.32" y="119.38" rot="R90"/>
+<instance part="D3" gate="G$1" x="152.4" y="119.38" rot="R90"/>
 <instance part="J1" gate="G$1" x="96.52" y="66.04"/>
 <instance part="GND36" gate="1" x="78.74" y="66.04"/>
 <instance part="PAD10" gate="1" x="210.82" y="193.04" smashed="yes" rot="R270">
@@ -3457,6 +3457,7 @@ through the divider.</text>
 <segment>
 <pinref part="C7" gate="G$1" pin="P$2"/>
 <pinref part="GND3" gate="1" pin="GND"/>
+<wire x1="198.12" y1="121.92" x2="198.12" y2="116.84" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="C5" gate="G$1" pin="P$2"/>
@@ -3484,16 +3485,16 @@ through the divider.</text>
 <segment>
 <pinref part="Q4" gate="G$1" pin="S"/>
 <pinref part="GND11" gate="1" pin="GND"/>
-<wire x1="134.62" y1="101.6" x2="134.62" y2="88.9" width="0.1524" layer="91"/>
+<wire x1="139.7" y1="101.6" x2="139.7" y2="88.9" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="LED2" gate="G$1" pin="C"/>
 <pinref part="GND18" gate="1" pin="GND"/>
-<wire x1="124.46" y1="114.3" x2="127" y2="114.3" width="0.1524" layer="91"/>
+<wire x1="127" y1="111.76" x2="129.54" y2="111.76" width="0.1524" layer="91"/>
 <pinref part="LED1" gate="G$1" pin="C"/>
-<wire x1="116.84" y1="116.84" x2="127" y2="116.84" width="0.1524" layer="91"/>
-<wire x1="127" y1="116.84" x2="127" y2="114.3" width="0.1524" layer="91"/>
-<junction x="127" y="114.3"/>
+<wire x1="119.38" y1="114.3" x2="129.54" y2="114.3" width="0.1524" layer="91"/>
+<wire x1="129.54" y1="114.3" x2="129.54" y2="111.76" width="0.1524" layer="91"/>
+<junction x="129.54" y="111.76"/>
 </segment>
 <segment>
 <pinref part="Q3" gate="G$1" pin="S"/>
@@ -3502,7 +3503,7 @@ through the divider.</text>
 </segment>
 <segment>
 <pinref part="GND28" gate="1" pin="GND"/>
-<wire x1="124.46" y1="91.44" x2="124.46" y2="88.9" width="0.1524" layer="91"/>
+<wire x1="129.54" y1="91.44" x2="129.54" y2="88.9" width="0.1524" layer="91"/>
 <pinref part="RN2" gate="G$1" pin="2"/>
 </segment>
 <segment>
@@ -3831,11 +3832,12 @@ through the divider.</text>
 </segment>
 <segment>
 <pinref part="U2" gate="G$1" pin="VBAT"/>
-<wire x1="218.44" y1="132.08" x2="200.66" y2="132.08" width="0.1524" layer="91"/>
 <pinref part="+3V1" gate="G$1" pin="2.5V"/>
 <pinref part="C7" gate="G$1" pin="P$1"/>
-<wire x1="200.66" y1="132.08" x2="198.12" y2="132.08" width="0.1524" layer="91"/>
-<junction x="200.66" y="132.08"/>
+<wire x1="195.58" y1="132.08" x2="198.12" y2="132.08" width="0.1524" layer="91"/>
+<wire x1="198.12" y1="132.08" x2="198.12" y2="129.54" width="0.1524" layer="91"/>
+<wire x1="198.12" y1="132.08" x2="218.44" y2="132.08" width="0.1524" layer="91"/>
+<junction x="198.12" y="132.08"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="VCC@2"/>
@@ -3908,7 +3910,7 @@ through the divider.</text>
 <segment>
 <pinref part="U1" gate="G$1" pin="PB1(OC1A)"/>
 <pinref part="R4" gate="G$1" pin="2"/>
-<wire x1="93.98" y1="104.14" x2="109.22" y2="104.14" width="0.1524" layer="91"/>
+<wire x1="93.98" y1="104.14" x2="116.84" y2="104.14" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$1" class="0">
@@ -3978,10 +3980,10 @@ through the divider.</text>
 <segment>
 <pinref part="R4" gate="G$1" pin="1"/>
 <pinref part="Q4" gate="G$1" pin="G"/>
-<wire x1="119.38" y1="104.14" x2="124.46" y2="104.14" width="0.1524" layer="91"/>
-<wire x1="124.46" y1="104.14" x2="129.54" y2="104.14" width="0.1524" layer="91"/>
-<wire x1="124.46" y1="101.6" x2="124.46" y2="104.14" width="0.1524" layer="91"/>
-<junction x="124.46" y="104.14"/>
+<wire x1="127" y1="104.14" x2="129.54" y2="104.14" width="0.1524" layer="91"/>
+<wire x1="129.54" y1="104.14" x2="134.62" y2="104.14" width="0.1524" layer="91"/>
+<wire x1="129.54" y1="101.6" x2="129.54" y2="104.14" width="0.1524" layer="91"/>
+<junction x="129.54" y="104.14"/>
 <pinref part="RN2" gate="G$1" pin="1"/>
 </segment>
 </net>
@@ -3989,26 +3991,30 @@ through the divider.</text>
 <segment>
 <pinref part="Q4" gate="G$1" pin="D"/>
 <pinref part="LS1" gate="G$1" pin="GND"/>
-<wire x1="134.62" y1="116.84" x2="134.62" y2="114.3" width="0.1524" layer="91"/>
-<wire x1="134.62" y1="114.3" x2="134.62" y2="111.76" width="0.1524" layer="91"/>
-<wire x1="147.32" y1="114.3" x2="147.32" y2="116.84" width="0.1524" layer="91"/>
+<wire x1="139.7" y1="116.84" x2="139.7" y2="114.3" width="0.1524" layer="91"/>
+<wire x1="139.7" y1="114.3" x2="139.7" y2="111.76" width="0.1524" layer="91"/>
+<wire x1="152.4" y1="114.3" x2="152.4" y2="116.84" width="0.1524" layer="91"/>
 <pinref part="D3" gate="G$1" pin="A"/>
-<wire x1="147.32" y1="114.3" x2="134.62" y2="114.3" width="0.1524" layer="91"/>
-<junction x="134.62" y="114.3"/>
+<wire x1="152.4" y1="114.3" x2="139.7" y2="114.3" width="0.1524" layer="91"/>
+<junction x="139.7" y="114.3"/>
 </segment>
 </net>
 <net name="N$11" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="PD5(T1)"/>
 <pinref part="LED1" gate="G$1" pin="A"/>
-<wire x1="93.98" y1="116.84" x2="109.22" y2="116.84" width="0.1524" layer="91"/>
+<wire x1="93.98" y1="116.84" x2="106.68" y2="116.84" width="0.1524" layer="91"/>
+<wire x1="106.68" y1="116.84" x2="106.68" y2="114.3" width="0.1524" layer="91"/>
+<wire x1="106.68" y1="114.3" x2="111.76" y2="114.3" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$16" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="PD6(AIN0)"/>
 <pinref part="LED2" gate="G$1" pin="A"/>
-<wire x1="93.98" y1="114.3" x2="116.84" y2="114.3" width="0.1524" layer="91"/>
+<wire x1="93.98" y1="114.3" x2="104.14" y2="114.3" width="0.1524" layer="91"/>
+<wire x1="104.14" y1="114.3" x2="104.14" y2="111.76" width="0.1524" layer="91"/>
+<wire x1="104.14" y1="111.76" x2="119.38" y2="111.76" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$12" class="0">
@@ -4061,12 +4067,12 @@ through the divider.</text>
 <segment>
 <pinref part="LS1" gate="G$1" pin="VCC"/>
 <pinref part="P+4" gate="VCC" pin="VCC"/>
-<wire x1="134.62" y1="127" x2="134.62" y2="124.46" width="0.1524" layer="91"/>
-<wire x1="134.62" y1="124.46" x2="134.62" y2="121.92" width="0.1524" layer="91"/>
-<wire x1="147.32" y1="124.46" x2="147.32" y2="121.92" width="0.1524" layer="91"/>
+<wire x1="139.7" y1="127" x2="139.7" y2="124.46" width="0.1524" layer="91"/>
+<wire x1="139.7" y1="124.46" x2="139.7" y2="121.92" width="0.1524" layer="91"/>
+<wire x1="152.4" y1="124.46" x2="152.4" y2="121.92" width="0.1524" layer="91"/>
 <pinref part="D3" gate="G$1" pin="C"/>
-<wire x1="147.32" y1="124.46" x2="134.62" y2="124.46" width="0.1524" layer="91"/>
-<junction x="134.62" y="124.46"/>
+<wire x1="152.4" y1="124.46" x2="139.7" y2="124.46" width="0.1524" layer="91"/>
+<junction x="139.7" y="124.46"/>
 </segment>
 <segment>
 <pinref part="PAD6" gate="1" pin="P"/>
