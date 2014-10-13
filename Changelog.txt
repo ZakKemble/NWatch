@@ -1,4 +1,12 @@
+2014-10-13:
+	Hardware:
+	N|Watch (v1.4):
+	- Q2, Q3, Q4 MOSFETs changed to BJTs (BC817-40 & BC807-40)
+	- R2, R3 100R gate resistors changed to 47K and 1K
+	- R4 has been removed (now all resistors in RN3 are being using)
+
 2014-06-30:
+	Software:
 	- Fixed tune priority not resetting
 
 2014-06-28:
@@ -14,7 +22,8 @@
 		Watch waking up when it's not supposed to
 	- Bunch more stuff...
 
-	Hardware (v1.3):
+	Hardware:
+	N|Watch (v1.3):
 	- 3 Separate buttons instead of a 3 way nav button
 	- MOSFETs have been changed to more suitable types (DMG6968s were total overkill)
 	- Thinner PCB traces allowing components to be packed closer together
