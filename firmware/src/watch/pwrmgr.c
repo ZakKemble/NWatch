@@ -10,6 +10,8 @@
 
 #include "common.h"
 
+#define BATTERY_CUTOFF	2800
+
 typedef enum
 {
 	SYS_AWAKE,
@@ -27,6 +29,7 @@ static pwr_state_t active[PWR_ACTIVE_COUNT];
 static sys_t systemState;
 static user_t userState;
 
+static void batteryCutoff(void);
 static void userWake(void);
 static void userSleep(void);
 
@@ -37,12 +40,55 @@ void pwrmgr_init()
 	set_sleep_mode(SLEEP_MODE_IDLE);
 }
 
+static void batteryCutoff()
+{
+	// If the battery voltage goes below a threshold then disable
+	// all wakeup sources apart from USB plug-in and go to power down sleep.
+	// This helps protect the battery from undervoltage and since the battery's own PCM hasn't kicked in yet the RTC will continue working.
+
+	uint voltage = battery_voltage();
+	if(voltage < BATTERY_CUTOFF && !USB_CONNECTED() && voltage)
+	{
+		// Turn everything off
+		buttons_shutdown();
+		tune_stop(PRIO_MAX);
+		led_stop();
+		oled_power(OLED_PWR_OFF);
+		time_shutdown();
+		
+		// Stay in this loop until USB is plugged in or the battery voltage is above the threshold
+		do
+		{
+			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+
+			cli();
+			sleep_enable();
+			sleep_bod_disable();
+			sei();
+			sleep_cpu();
+			sleep_disable();
+			
+			// Get battery voltage
+			battery_updateNow();
+
+		} while(!USB_CONNECTED() && battery_voltage() < BATTERY_CUTOFF);
+
+		// Wake up
+		time_wake();
+		buttons_startup();
+		buttons_wake();
+		oled_power(OLED_PWR_ON);
+	}
+}
+
 void pwrmgr_update()
 {
+	batteryCutoff();
+	
 	bool idle = false;
 	LOOPR(PWR_ACTIVE_COUNT, i)
 	{
-		if(active[i] == PWR_STATE_BSY) // Something busy, no sleep stuff
+		if(active[i] == PWR_STATE_BUSY) // Something busy, no sleep stuff
 			return;
 		else if(active[i] == PWR_STATE_IDLE)
 			idle = true;
@@ -61,6 +107,11 @@ void pwrmgr_update()
 		else // Idle sleep mode
 #endif
 		{
+			if(PRR == (_BV(PRTWI)|_BV(PRTIM0)|_BV(PRTIM1)|_BV(PRSPI)|_BV(PRUSART0)|_BV(PRADC))) // No peripherals are in use other than Timer2
+				set_sleep_mode(SLEEP_MODE_PWR_SAVE); // Also disable BOD?
+			else
+				set_sleep_mode(SLEEP_MODE_IDLE);
+
 			debugPin_sleepIdle(HIGH);
 			sleep_mode();
 			debugPin_sleepIdle(LOW);
@@ -104,7 +155,7 @@ void pwrmgr_update()
 			if(time_wake() != RTCWAKE_SYSTEM) // Woken by button press, USB plugged in or by RTC user alarm
 				userWake();
 
-			set_sleep_mode(SLEEP_MODE_IDLE);
+			//set_sleep_mode(SLEEP_MODE_IDLE);
 		}
 	}
 }
@@ -122,7 +173,7 @@ bool pwrmgr_userActive()
 static void userWake()
 {
 	userState = USER_ACTIVE;
-	buttons_clear();
+	buttons_wake();
 	display_startCRTAnim(CRTANIM_OPEN);
 	oled_power(OLED_PWR_ON);
 	battery_setUpdate(3);

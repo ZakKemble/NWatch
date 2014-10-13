@@ -11,6 +11,9 @@
 
 #if RTC_SRC == RTC_SRC_DS1307
 
+#define RTC_I2C_ADDR	DS1307_I2C
+#define RTCFUNC_PREFIX	ds1307_
+
 void ds1307_init(void);
 void ds1307_sqw(rtc_sqw_t);
 void ds1307_get(time_s*);

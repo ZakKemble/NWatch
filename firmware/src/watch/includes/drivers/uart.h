@@ -23,7 +23,15 @@ void uart_put(byte);
 	power_usart0_disable();\
 	pinPullup(UART_RX_P, PU_EN);\
 	pinPullup(UART_TX_P, PU_EN);
+/*
+#warning "FIX ME!"
 
+#define uart_init()\
+power_usart0_disable();\
+pinMode(UART_TX_P, OUTPUT);\
+pinWrite(UART_TX_P, LOW);\
+pinPullup(UART_RX_P, PU_EN);
+*/
 #define uart_put(data) EMPTY_FUNC
 
 #endif

@@ -20,11 +20,11 @@
 // Hardware version
 // 1 = PCB 1.0 - 1.1
 // 2 = PCB 1.2
-// 3 = PCB 1.3
+// 3 = PCB 1.3 - 1.4
 #define HW_VERSION	3
 
 // Firmware version
-#define FW_VERSION	"1.1 20140630" // maybe use some __DATE__ __TIME__ stuff?
+#define FW_VERSION	"1.1 141013" // maybe use some __DATE__ __TIME__ stuff?
 
 // Language
 // 0 = English

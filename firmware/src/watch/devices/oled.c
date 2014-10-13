@@ -100,6 +100,8 @@ static void resetPosition()
 		spi_transfer_nr(0x21);
 		spi_transfer_nr(0x00);
 		spi_transfer_nr(0x7F);
+		
+		// also set display start line and display offset
 	}
 }
 

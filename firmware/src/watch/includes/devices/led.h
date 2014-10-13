@@ -22,7 +22,8 @@ typedef enum
 
 void led_init(void);
 void led_flash(led_t, byte, byte);
-bool led_flashing(void);
+BOOL led_flashing(void);
 void led_update(void);
+void led_stop(void);
 
 #endif /* LED_H_ */

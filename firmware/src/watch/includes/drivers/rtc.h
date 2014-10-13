@@ -37,21 +37,16 @@ void rtc_tempGet(rtc_temperature_s*);
 
 #else
 
-#if RTC_SRC == RTC_SRC_DS3231
-	#include "devices/ds3231.h"
-	#define RTC_I2C_ADDR	DS3231_I2C
-	#define RTCFUNC(x) ds3231_ ## x
-#elif RTC_SRC == RTC_SRC_DS1307
-	#include "devices/ds1307.h"
-	#define RTC_I2C_ADDR	DS1307_I2C
-	#define RTCFUNC(x) ds1307_ ## x
-#elif RTC_SRC == RTC_SRC_MCP7940X
-	#include "devices/mcp7940x.h"
-	#define RTC_I2C_ADDR	MCP7940X_I2C
-	#define RTCFUNC(x) mcp7940x_ ## x
-#else
+#include "devices/ds3231.h"
+#include "devices/ds1307.h"
+#include "devices/mcp7940x.h"
+
+#if !defined(RTCFUNC_PREFIX) || !defined(RTC_I2C_ADDR)
 	#error "Invalid RTC Source"
 #endif
+
+#define RTCPREFIX(prefix, func)	CONCAT(prefix, func)
+#define RTCFUNC(func)			RTCPREFIX(RTCFUNC_PREFIX, func)
 
 #define rtc_init				(RTCFUNC(init))
 #define rtc_sqw					(RTCFUNC(sqw))

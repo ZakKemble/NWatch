@@ -11,6 +11,9 @@
 
 #if RTC_SRC == RTC_SRC_DS3231
 
+#define RTC_I2C_ADDR	DS3231_I2C
+#define RTCFUNC_PREFIX	ds3231_
+
 void ds3231_init(void);
 void ds3231_sqw(rtc_sqw_t);
 void ds3231_get(time_s*);

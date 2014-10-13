@@ -54,7 +54,7 @@ static void itemLoader(byte num)
 			return;
 	}
 
-	setMenuOption_P(3, PSTR("FW   " FW_VERSION), NULL, NULL);
+	setMenuOption_P(3, PSTR("FW     " FW_VERSION), NULL, NULL);
 	addBackOption();
 }
 
@@ -99,5 +99,5 @@ static void setShowFPS()
 
 static void batteryUpdate()
 {
-	battery_setUpdate(0);
+	battery_updateNow();
 }

@@ -115,7 +115,7 @@ static bool goingOff()
 	return false;
 }
 
-// This func needs to be ran when an alarm has changed, time has changed and an alarm has gone off
+// This func needs to be ran when an alarm has changed, time has changed or an alarm has gone off
 static void getNextAlarm()
 {
 	byte next = UCHAR_MAX;

@@ -9,25 +9,27 @@
 #ifndef MILLIS_CONFIG_H_
 #define MILLIS_CONFIG_H_
 
-typedef unsigned char millis8_t;
-
-/**
-* Milliseconds data type \n
-* Data type				- Max time span			- Memory used \n
-* unsigned char			- 255 milliseconds		- 1 byte \n
-* unsigned int			- 65.54 seconds			- 2 bytes \n
-* unsigned long			- 49.71 days			- 4 bytes \n
-* unsigned long long	- 584.9 million years	- 8 bytes
-*/
 #define MILLIS_DATATYPE	unsigned int
 
-// Which timer to use
-// MILLIS_TIMER0
-// MILLIS_TIMER1
-// MILLIS_TIMER2
-#define MILLIS_TIMER	MILLIS_TIMER2 /**< Which timer to use. */
+#define CLOCKSEL (_BV(CS21)|_BV(CS20))
+#define PRESCALER 32
 
-//
-#define MILLIS_INLINE	0
+#define INCREMENT_COUNT	1
+
+#define REG_TCCRA		TCCR2A
+#define REG_TCCRB		TCCR2B
+#define REG_TIMSK		TIMSK2
+#define REG_OCR			OCR2A
+#define BIT_WGM			WGM21
+#define BIT_OCIE		OCIE2A
+#define ISR_VECT		TIMER2_COMPA_vect
+#define pwr_enable()	power_timer2_enable()
+#define pwr_disable()	power_timer2_disable()
+
+//#define SET_TCCRA()	(REG_TCCRA = _BV(BIT_WGM))
+#define SET_TCCRA()	(EMPTY_FUNC)
+#define SET_TCCRB()	(REG_TCCRB = CLOCKSEL)
+
+#define OCR_VAL ((F_CPU / PRESCALER) / 1000)
 
 #endif /* MILLIS_CONFIG_H_ */

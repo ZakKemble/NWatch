@@ -8,6 +8,9 @@
 
 #include "common.h"
 
+// NOT FINISHED
+// Will be like the tunes for the buzzer, but for the LEDs instead
+
 #if DISCOMEM_TYPE == DISCOMEM_PROGMEM
 #define disco_read(x) (pgm_read_word(&x))
 #elif DISCOMEM_TYPE == DISCOMEM_EEPROM

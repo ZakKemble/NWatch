@@ -43,8 +43,8 @@
 // Resolution = 4.88mV
 
 static uint voltage;
-static byte nextUpdate;
-static bool doneUpdate;
+static byte lastSecs;
+static byte changeCount;
 
 void battery_init()
 {
@@ -53,41 +53,49 @@ void battery_init()
 	disable_divider();
 }
 
-// Set next update to happen in a few seconds
+// Set next update to happen in a x seconds
 void battery_setUpdate(byte secs)
 {
-	nextUpdate = timeData.secs + secs;
-	if(nextUpdate >= 60)
-		nextUpdate -= 60;
-	doneUpdate = false;
+	changeCount = secs;
+	lastSecs = timeData.secs;
+}
+
+void battery_update()
+{
+	// See if seconds has changed
+	if(lastSecs == timeData.secs)
+		return;
+	lastSecs = timeData.secs;
+
+	if(changeCount)
+	{
+		changeCount--;
+		return;
+	}
+
+	// Next update in 5 seconds
+	battery_setUpdate(5);
+
+	battery_updateNow();
 }
 
 // Update voltage
-void battery_update()
+void battery_updateNow()
 {
-	if(timeData.secs != nextUpdate)
-	{
-		doneUpdate = false;
-		return;
-	}
-	else if(doneUpdate)
-		return;
-
-	doneUpdate = true;
-	nextUpdate = 0;
-
 	// Enable P-MOSFET
 	enable_divider();
 
 	// Wait a bit for things to turn on
 	delay_us(200);
 
-	// Convert ADC value to voltage
+	// Get ADC value
 	uint adc = adc_read(ADC_CHANNEL);
-	voltage = ((ulong)adc * MAX_VOLTAGE) / MAX_ADCVAL;
 
 	// Turn off MOSFET
 	disable_divider();
+
+	// Convert ADC value to voltage
+	voltage = ((ulong)adc * MAX_VOLTAGE) / MAX_ADCVAL;
 }
 
 // Get voltage

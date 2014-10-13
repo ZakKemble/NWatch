@@ -151,7 +151,7 @@ void draw_bitmap_do()
 		
 		const byte* b = bitmap + (hh*w);
 		
-		// If() outside of loop makes it faster (doesn't have to kee re-evaluating it)
+		// If() outside of loop makes it faster (doesn't have to keep re-evaluating it)
 		// Downside is code duplication
 		if(!pixelOffset && hhh < FRAME_HEIGHT)
 		{

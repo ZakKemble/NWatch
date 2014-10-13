@@ -12,6 +12,7 @@
 void battery_init(void);
 void battery_setUpdate(byte);
 void battery_update(void);
+void battery_updateNow(void);
 uint battery_voltage(void);
 
 #endif /* BATTERY_H_ */

@@ -19,10 +19,10 @@
 #define tune_read(x) (x)
 #endif
 
-static byte idx;
-static const tune_t* tune;
-static vol_t vol;
-static tonePrio_t prio;
+static byte idx;			// Position in tune
+static const tune_t* tune;	// The tune
+static vol_t vol;			// Volume
+static tonePrio_t prio;		// Priority
 
 static void next(void);
 
@@ -32,12 +32,16 @@ void tune_play(const tune_t* _tune, vol_t _vol, tonePrio_t _prio)
 	screenshot_do();
 #endif
 
+	// Check priority, if lower than currently playing tune priority then ignore it
 	if(_prio < prio)
 		return;
-	prio = _prio;
-	tune = _tune;
-	vol = _vol;
-	idx = 0;
+
+	prio	= _prio;
+	tune	= _tune;
+	vol		= _vol;
+	idx		= 0;
+
+	// Begin playing
 	next();
 }
 
@@ -49,16 +53,22 @@ void tune_stop(tonePrio_t _prio)
 
 static void next()
 {
+	// Read next tone
 	uint data = tune_read(tune[idx++]);
+
 	byte len = data;
 	if(len != TONE_REPEAT)
 	{
+		// Play next tone
 		buzzer_buzz(len, (tone_t)(data>>8), vol, prio, next);
+		
+		// If tone was TONE_STOP then reset priority
 		if(len == TONE_STOP)
 			prio = PRIO_MIN;
 	}
 	else
 	{
+		// Repeat
 		idx = 0;
 		next();
 	}

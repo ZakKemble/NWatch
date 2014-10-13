@@ -21,6 +21,11 @@ typedef unsigned char byte;
 typedef unsigned long ulong;
 typedef unsigned int uint;
 
+// bool from stdbool does extra stuff to make the value
+// always either 0 or 1, which isn't needed most of the time.
+// So here's BOOL which doesn't do that.
+typedef	unsigned char	BOOL;
+
 typedef enum
 {
 	DISPLAY_DONE,
@@ -116,7 +121,12 @@ typedef struct{
 
 typedef display_t (*draw_f)(void);
 typedef void (*display_f)(void);
+
+// Function for buttons to call
+// Return true to only call function once per press
+// Return false to continually call function while the button is pressed
 typedef bool (*button_f)(void);
+
 typedef void (*menu_f)(void);
 typedef void (*itemLoader_f)(byte);
 

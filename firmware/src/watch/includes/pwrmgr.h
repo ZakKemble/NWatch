@@ -24,7 +24,7 @@ typedef enum
 {
 	PWR_STATE_NONE, // Power down sleep allowed
 	PWR_STATE_IDLE, // Idle sleep allowed
-	PWR_STATE_BSY // No sleep allowed
+	PWR_STATE_BUSY // No sleep allowed
 } pwr_state_t;
 
 void pwrmgr_init(void);

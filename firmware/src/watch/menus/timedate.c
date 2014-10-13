@@ -123,7 +123,7 @@ static void selectDate()
 			break;
 		default:
 			do1sStuff(&timeDataSet.year, 99, SETTING_NOW_NONE, 0);
-			timeDataSet.day = time_dow(timeDataSet.year + 2000, timeDataSet.month + 1, timeDataSet.date);
+			timeDataSet.day = time_dow(timeDataSet.year, timeDataSet.month, timeDataSet.date);
 			setMenuFuncs(mDown, mUp, mSelect, itemLoader);
 			menuData.func.draw = NULL;
 			break;

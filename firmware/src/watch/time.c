@@ -18,6 +18,7 @@ static void getRtcTime(void);
 
 void time_init()
 {
+	// RTC square wave/alarm
 	pinPullup(RTC_INT_P, PU_EN);
 
 #if RTC_SRC != RTC_SRC_INTERNAL
@@ -45,10 +46,10 @@ void time_sleep()
 		alarm.days = alarm_getNextDay() + 1;
 		rtc_setUserAlarmWake(&alarm);
 	}
-	else
+	else // No next alarm
 		rtc_setUserAlarmWake(NULL);
 
-	// 
+	// Set up hour beeps
 	if(appConfig.volHour)
 	{
 		alarm.min = 0;
@@ -58,6 +59,17 @@ void time_sleep()
 	}
 	else // Hour beep volume set to minimum, so don't bother with the system alarm
 		rtc_setSystemAlarmWake(NULL);
+#endif
+
+	update = false;
+}
+
+void time_shutdown()
+{
+#if RTC_SRC != RTC_SRC_INTERNAL
+	rtc_sqw(RTC_SQW_OFF);
+	rtc_setUserAlarmWake(NULL);
+	rtc_setSystemAlarmWake(NULL);
 #endif
 
 	update = false;
@@ -103,16 +115,25 @@ void time_set(time_s* newTimeData)
 
 bool time_isLeapYear(byte year)
 {
-	uint fullYear = year + 2000;
-	return ((fullYear & 3) == 0 && ((fullYear % 25) != 0 || (fullYear & 15) == 0));
+// Watch only supports years 2000 - 2099, so no need to do the full calculation
+
+	return (year % 4 == 0);
+
+	//uint fullYear = year + 2000;
+	//return ((fullYear & 3) == 0 && ((fullYear % 25) != 0 || (fullYear & 15) == 0));
 }
 
-// Workout day of week from year, month and day
-byte time_dow(int y, month_t m, day_t d)
+// Workout day of week from year, month and date
+// http://en.wikipedia.org/wiki/Determination_of_the_day_of_the_week
+byte time_dow(byte yy, month_t m, byte d)
 {
-	static byte t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
-	y -= m < 3;
-	byte dow = (y + y/4 - y/100 + y/400 + t[m-1] + d) % 7;
+	//static byte t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+	//y -= m < 3;
+	//byte dow = (y + y/4 - y/100 + y/400 + t[m-1] + d) % 7;
+
+	m++;
+	int y = yy + 2000;
+	byte dow = (d+=m<3?y--:y-2,23*m/9+d+4+y/4-y/100+y/400)%7 ;
 
 	// 0 = Sunday, 1 = Monday, but Monday should be 0
 	dow--;
@@ -198,6 +219,12 @@ void time_update()
 static void getRtcTime()
 {
 	rtc_get(&timeData);
+
+//#warning "remove"
+//	timeData.day = 3;
+//	timeData.date = 7;
+//	timeData.month = 0;
+//	timeData.year = 15;
 }
 
 #if RTC_SRC == RTC_SRC_INTERNAL

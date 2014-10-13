@@ -12,7 +12,7 @@ static void init(void);
 #if WDT_ENABLE && WDT_DEBUG
 static void resetError(void);
 #else
-#define resetError() EMPTY_FUNC
+#define resetError() (EMPTY_FUNC)
 #endif
 //static void configError(void);
 //static void freeRAM(void);
@@ -28,10 +28,11 @@ int main(void)
 	//else if(!appconfig_check())
 	//	configError();
 
+	// Startup buzz and flash
 	buzzer_buzz(200, TONE_4KHZ, VOL_UI, PRIO_UI, NULL);
-	//while(1){}
 	led_flash(LED_GREEN, 50, 255);
 
+	// Set watchface
 	display_set(watchface_normal);
 	display_load();
 	

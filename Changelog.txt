@@ -1,4 +1,9 @@
 2014-10-13:
+	Software:
+	- Added early battery undervoltage cutoff. Improves battery lifespan by not letting the voltage go so low and the RTC will continue working since the battery's own PCM hasn't kicked in yet
+	- Slightly reduced power consumption by going into power save sleep instead of idle sleep if no other peripherals are in use
+	- Various code optimisations
+
 	Hardware:
 	N|Watch (v1.4):
 	- Q2, Q3, Q4 MOSFETs changed to BJTs (BC817-40 & BC807-40)

@@ -83,6 +83,12 @@
             <Value>libm</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
+        <avrgcc.assembler.general.AssemblerFlags>-DF_CPU=8000000</avrgcc.assembler.general.AssemblerFlags>
+        <avrgcc.assembler.general.IncludePaths>
+          <ListValues>
+            <Value>../includes</Value>
+          </ListValues>
+        </avrgcc.assembler.general.IncludePaths>
         <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
       </AvrGcc>
     </ToolchainSettings>
@@ -247,16 +253,31 @@
     <Compile Include="includes\millis\millis_config.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="includes\system.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="includes\tune.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="includes\tunes.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="includes\watchfaces\lowbatt.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="millis\millis_isr.s">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="system.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="tune.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tunes.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="watchfaces\lowbatt.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="watchfaces\normal.c">

@@ -21,10 +21,11 @@ extern time_s timeData;
 
 void time_init(void);
 void time_sleep(void);
+void time_shutdown(void);
 rtcwake_t time_wake(void);
 void time_set(time_s*);
 bool time_isLeapYear(byte);
-byte time_dow(int, month_t, day_t);
+byte time_dow(byte, month_t, byte);
 byte time_monthDayCount(month_t, byte);
 char time_hourAmPm(byte*);
 void time_update(void);

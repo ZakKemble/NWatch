@@ -11,6 +11,9 @@
 
 #if RTC_SRC == RTC_SRC_MCP7940X
 
+#define RTC_I2C_ADDR	MCP7940X_I2C
+#define RTCFUNC_PREFIX	mcp7940x_
+
 void mcp7940x_init(void);
 void mcp7940x_sqw(rtc_sqw_t);
 void mcp7940x_get(time_s*);

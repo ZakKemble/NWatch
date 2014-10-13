@@ -8,6 +8,8 @@
 
 #include "common.h"
 
+// Remove const when TUNEMEM is EEPMEM?
+
 const tune_t tuneUsbPlugin[] TUNEMEM = {
 	TONE_2KHZ<<8 | 50,
 	TONE_PAUSE<<8 | 100,
@@ -37,9 +39,9 @@ const tune_t tuneUsbCharged[] TUNEMEM = {
 };
 
 const tune_t tuneHour[] TUNEMEM = {
-	TONE_2_5KHZ<<8 | 200,
-	TONE_PAUSE<<8 | 100,
-	TONE_2_5KHZ<<8 | 200,
+	TONE_2_5KHZ<<8 | 150,
+	TONE_PAUSE<<8 | 80,
+	TONE_2_5KHZ<<8 | 150,
 	TONE_STOP
 };
 

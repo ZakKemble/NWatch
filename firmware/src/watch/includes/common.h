@@ -57,8 +57,10 @@
 #include "apps/stopwatch.h"
 #include "apps/torch.h"
 #include "watchfaces/normal.h"
+#include "watchfaces/lowbatt.h"
 #include "watchfaces/ui.h"
 
+#include "system.h"
 #include "global.h"
 #include "display.h"
 #include "time.h"
