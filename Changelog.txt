@@ -8,7 +8,8 @@
 	N|Watch (v1.4):
 	- Q2, Q3, Q4 MOSFETs changed to BJTs (BC817-40 & BC807-40)
 	- R2, R3 100R gate resistors changed to 47K and 1K
-	- R4 has been removed (now all resistors in RN3 are being using)
+	- R4 has been removed (now all resistors in RN3 are being used)
+	- Pogo pads are now 2mm apart instead of 1.27mm (was hard to solder the pogo adapter)
 
 2014-06-30:
 	Software:
