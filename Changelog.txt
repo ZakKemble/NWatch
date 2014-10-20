@@ -1,3 +1,7 @@
+2014-10-20:
+	Software:
+	- Fixed alarm bug
+
 2014-10-13:
 	Software:
 	- Added early battery undervoltage cutoff. Improves battery lifespan by not letting the voltage go so low and the RTC will continue working since the battery's own PCM hasn't kicked in yet

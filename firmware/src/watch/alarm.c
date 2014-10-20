@@ -108,7 +108,7 @@ static bool goingOff()
 		if(timeData.secs == 0)
 		{
 			alarmSetOff = true;
-			getNextAlarm();
+			//getNextAlarm();
 		}
 		return true;
 	}
@@ -175,6 +175,7 @@ static uint toMinutes(byte hours, byte mins, byte dow)
 
 static bool stopAlarm()
 {
+	getNextAlarm();
 	display_setDrawFunc(oldDrawFunc);
 	buttons_setFuncs(oldBtn1Func, oldBtn2Func, oldBtn3Func);
 	oled_setInvert(appConfig.invert);
