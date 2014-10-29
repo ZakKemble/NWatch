@@ -11,7 +11,7 @@
 
 #if COMPILE_GAME1
 
-#define GAME1_NAME "Breakout"
+#define GAME1_NAME STR_GAME1
 
 void game1_start(void);
 

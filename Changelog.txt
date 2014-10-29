@@ -1,3 +1,9 @@
+2014-10-29:
+	Software:
+	- Added 12 hour time option
+	- Russian translation, thanks to Onatsky Sergei (Le_Fleurs (-at-) mail (-dot-) ru)
+	- Bootloader baud changed from 76800 to 57600 (Linux doesn't like 76800)
+
 2014-10-20:
 	Software:
 	- Fixed alarm bug

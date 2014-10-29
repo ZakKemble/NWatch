@@ -21,11 +21,7 @@ void watchface_lowbatt(void)
 
 static display_t draw(void)
 {
-	byte hour = timeData.hour;
-	char ampm = time_hourAmPm(&hour);
-	char buff[7];
-	sprintf_P(buff, PSTR(TIME_FORMAT_SMALL), hour, timeData.mins, ampm);
-	draw_string(buff,false,48,16);
+	draw_string(time_timeStr(), false, 48, 16);
 	
 	image_s img = newImage((FRAME_WIDTH / 2) - 8, (FRAME_HEIGHT / 2) - 4, battIconEmpty, 16, 8, WHITE, NOINVERT, 0);
 	draw_bitmap_set(&img);

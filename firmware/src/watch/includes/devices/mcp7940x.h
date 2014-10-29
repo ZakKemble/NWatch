@@ -16,8 +16,8 @@
 
 void mcp7940x_init(void);
 void mcp7940x_sqw(rtc_sqw_t);
-void mcp7940x_get(time_s*);
-void mcp7940x_save(time_s*);
+void mcp7940x_get(timeDate_s*);
+void mcp7940x_save(timeDate_s*);
 void mcp7940x_tempUpdate(void);
 void mcp7940x_tempGet(rtc_temperature_s*);
 void mcp7940x_setUserAlarmWake(alarm_s*);

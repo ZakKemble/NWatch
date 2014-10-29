@@ -13,6 +13,8 @@
 #include "lang/english.h"
 #elif LANGUAGE == 1
 #include "lang/german.h"
+#elif LANGUAGE == 2
+#include "lang/russian.h"
 #else
 #error "Unknown language set"
 #endif

@@ -21,8 +21,8 @@ static appconfig_s eepConfig EEMEM = {
 	true, // animations
 #endif
 	true, // 180 rotate
-	true,//false, // FPS
-	false, // 12 hour mode
+	false, // FPS
+	TIMEMODE_24HR,
 	{
 		255 // volume + brightness (all max)
 	}
@@ -56,7 +56,7 @@ void appconfig_reset()
 #endif
 	appConfig.display180 = true;
 	appConfig.showFPS = true;
-	appConfig.mode12hr = false;
+	appConfig.timeMode = TIMEMODE_24HR;
 	appConfig.volumes = 255;
 
 	appconfig_save();

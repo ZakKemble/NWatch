@@ -24,12 +24,12 @@
 #define HW_VERSION	3
 
 // Firmware version
-#define FW_VERSION	"1.1 141020" // maybe use some __DATE__ __TIME__ stuff?
+#define FW_VERSION	"1.1 141029" // maybe use some __DATE__ __TIME__ stuff?
 
 // Language
 // 0 = English
-// 1 = German
-// etc
+// 1 = German (not done)
+// 2 = Russian
 #define LANGUAGE 0
 
 // Compile options
@@ -50,6 +50,7 @@
 //#define UART_BAUD 76800
 //#define ALARM_COUNT 10
 
+// Only DS3231 is working at the moment
 #define RTC_SRC_INTERNAL	0
 #define RTC_SRC_DS3231		1
 #define RTC_SRC_DS1307		2

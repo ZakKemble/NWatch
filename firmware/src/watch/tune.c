@@ -8,9 +8,6 @@
 
 #include "common.h"
 
-#warning "dont forget me"
-#include "apps/screenshot.h"
-
 #if TUNEMEM_TYPE == TUNEMEM_PROGMEM
 #define tune_read(x) (pgm_read_word(&x))
 #elif TUNEMEM_TYPE == TUNEMEM_EEPROM
@@ -28,10 +25,6 @@ static void next(void);
 
 void tune_play(const tune_t* _tune, vol_t _vol, tonePrio_t _prio)
 {
-#if COMPILE_SCREENSHOT
-	screenshot_do();
-#endif
-
 	// Check priority, if lower than currently playing tune priority then ignore it
 	if(_prio < prio)
 		return;

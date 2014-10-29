@@ -122,12 +122,10 @@ static void sendCmd(byte cmd)
 	}		
 }
 
-#warning "dont forget me"
-#include "apps/screenshot.h"
 void oled_flush()
 {
 	resetPosition();
-	
+
 #if COMPILE_SCREENSHOT
 	screenshot_send();
 #endif

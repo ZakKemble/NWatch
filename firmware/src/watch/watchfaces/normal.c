@@ -65,7 +65,6 @@ static display_t draw()
 	
 	// Draw charging icon
 	icon.width = 8;
-	
 #if COMPILE_ANIMATIONS
 	if(animateIcon(CHARGING(), &chargeImagePos))
 	{
@@ -86,7 +85,7 @@ static display_t draw()
 	icon.y = FRAME_HEIGHT - 8;
 
 #if COMPILE_STOPWATCH
-	// 
+	// Stopwatch icon
 	if(stopwatch_active())
 	{
 		icon.bitmap = stopwatch;
@@ -99,13 +98,16 @@ static display_t draw()
 	alarm_s nextAlarm;
 	if(alarm_getNext(&nextAlarm))
 	{
-		byte hour = nextAlarm.hour;
-		char ampm = time_hourAmPm(&hour);
-		UNUSED(ampm);
-		char buff[8];
-		sprintf_P(buff, PSTR("%02hhu:%02hhu"), hour, nextAlarm.min); // TODO: show AM/PM
+		time_s alarmTime;
+		alarmTime.hour = nextAlarm.hour;
+		alarmTime.mins = nextAlarm.min;
+		alarmTime.ampm = CHAR_24;
+		time_timeMode(&alarmTime, appConfig.timeMode);
+		
+		char buff[9];
+		sprintf_P(buff, PSTR("%02hhu:%02hhu%c"), alarmTime.hour, alarmTime.mins, alarmTime.ampm);
 		draw_string(buff, false, icon.x, FRAME_HEIGHT - 8);
-		icon.x += 35;
+		icon.x += (alarmTime.ampm == CHAR_24) ? 35 : 42;
 
 		icon.bitmap = dowImg[alarm_getNextDay()];
 		draw_bitmap_s2(&icon);
@@ -119,16 +121,16 @@ static display_t draw()
 static void drawDate()
 {
 	// Get day string
-	char day[4];
-	strcpy_P(day, days[timeData.day]);
+	char day[BUFFSIZE_STR_DAYS];
+	strcpy_P(day, days[timeDate.date.day]);
 
 	// Get month string
-	char month[4];
-	strcpy_P(month, months[timeData.month]);
+	char month[BUFFSIZE_STR_MONTHS];
+	strcpy_P(month, months[timeDate.date.month]);
 
 	// Draw date
-	char buff[16];
-	sprintf_P(buff, PSTR(DATE_FORMAT), day, timeData.date, month, timeData.year);
+	char buff[BUFFSIZE_DATE_FORMAT];
+	sprintf_P(buff, PSTR(DATE_FORMAT), day, timeDate.date.date, month, timeDate.date.year);
 	draw_string(buff,false,12,0);
 }
 
@@ -168,22 +170,22 @@ static display_t ticker()
 
 	if(appConfig.animations)
 	{
-		if(timeData.secs != secs)
+		if(timeDate.time.secs != secs)
 		{
 			yPos = 0;
 			yPos_secs = 0;
 			moving = true;
 
-			moving2[0] = div10(timeData.hour) != div10(hour2);
-			moving2[1] = mod10(timeData.hour) != mod10(hour2);
-			moving2[2] = div10(timeData.mins) != div10(mins);
-			moving2[3] = mod10(timeData.mins) != mod10(mins);
-			moving2[4] = div10(timeData.secs) != div10(secs);
+			moving2[0] = div10(timeDate.time.hour) != div10(hour2);
+			moving2[1] = mod10(timeDate.time.hour) != mod10(hour2);
+			moving2[2] = div10(timeDate.time.mins) != div10(mins);
+			moving2[3] = mod10(timeDate.time.mins) != mod10(mins);
+			moving2[4] = div10(timeDate.time.secs) != div10(secs);
 		
-			//memcpy(&timeDataLast, &timeData, sizeof(time_s));
-			hour2 = timeData.hour;
-			mins = timeData.mins;
-			secs = timeData.secs;
+			//memcpy(&timeDateLast, &timeDate, sizeof(timeDate_s));
+			hour2 = timeDate.time.hour;
+			mins = timeDate.time.mins;
+			secs = timeDate.time.secs;
 		}
 
 		if(moving)
@@ -230,32 +232,35 @@ static display_t ticker()
 		memset(moving2, false, sizeof(moving2));
 	}
 
+	// Set up image
 	image_s img = newImage(104, 28, (const byte*)&small2Font, FONT_SMALL2_WIDTH, FONT_SMALL2_HEIGHT, WHITE, false, yPos_secs);
 	draw_bitmap_set(&img);
 	
-	drawTickerNum2(&img, div10(timeData.secs), 5, moving2[4]);
+	// Seconds
+	drawTickerNum2(&img, div10(timeDate.time.secs), 5, moving2[4]);
 	img.x = 116;
-	drawTickerNum2(&img, mod10(timeData.secs), 9, moving);
+	drawTickerNum2(&img, mod10(timeDate.time.secs), 9, moving);
 	
+	// Set new font data for hours and minutes
 	img.y = TIME_POS_Y;
 	img.width = MIDFONT_WIDTH;
 	img.height = MIDFONT_HEIGHT;
 	img.bitmap = (const byte*)&midFont;
 	img.offsetY = yPos;
 
+	// Minutes
 	img.x = 60;
-	drawTickerNum2(&img, div10(timeData.mins), 5, moving2[2]);
+	drawTickerNum2(&img, div10(timeDate.time.mins), 5, moving2[2]);
 	img.x = 83;
-	drawTickerNum2(&img, mod10(timeData.mins), 9, moving2[3]);
+	drawTickerNum2(&img, mod10(timeDate.time.mins), 9, moving2[3]);
 
-	byte hour = timeData.hour;
-	char ampm = time_hourAmPm(&hour);
-
+	// Hours
 	img.x = 1;
-	drawTickerNum2(&img, div10(hour), 5, moving2[0]);
+	drawTickerNum2(&img, div10(timeDate.time.hour), 5, moving2[0]);
 	img.x = 24;
-	drawTickerNum2(&img, mod10(hour), 9, moving2[1]);
+	drawTickerNum2(&img, mod10(timeDate.time.hour), 9, moving2[1]);
 	
+	// Draw colon for half a second
 	if(RTC_HALFSEC())
 	{
 		img.x = TIME_POS_X + 46 + 2;
@@ -266,10 +271,15 @@ static display_t ticker()
 		draw_bitmap_s2(NULL);
 	}
 	
+	// Draw AM/PM character
 	char tmp[2];
-	tmp[0] = ampm;
+	tmp[0] = timeDate.time.ampm;
 	tmp[1] = 0x00;
 	draw_string(tmp, false, 104, 20);
+
+//	char buff[12];
+//	sprintf_P(buff, PSTR("%lu"), time_getTimestamp());
+//	draw_string(buff, false, 30, 50);
 
 	return (moving ? DISPLAY_BUSY : DISPLAY_DONE);
 }

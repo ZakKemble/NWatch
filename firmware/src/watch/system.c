@@ -35,6 +35,10 @@
 // Reduce clock rate in system mode?
 //
 // Rename system to lowpower and user to active?
+//
+// what about stopwatch?
+//
+// undervolt cutoff?
 
 #include "common.h"
 

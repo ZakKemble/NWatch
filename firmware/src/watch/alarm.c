@@ -8,6 +8,8 @@
 
 #include "common.h"
 
+#define NOALARM	UCHAR_MAX
+
 static byte nextAlarm;
 static byte nextAlarmDay;
 static bool alarmSetOff;
@@ -50,7 +52,7 @@ void alarm_get(byte num, alarm_s* alarm)
 
 bool alarm_getNext(alarm_s* alarm)
 {
-	if(nextAlarm == UCHAR_MAX)
+	if(nextAlarm == NOALARM)
 		return false;
 	alarm_get(nextAlarm, alarm);
 	return true;
@@ -71,27 +73,30 @@ void alarm_update()
 {
 	bool wasGoingOff = alarmSetOff;
 	bool alarmNow = goingOff();
-	if(alarmNow && alarmSetOff)
+	if(alarmSetOff)
 	{
-		if(wasGoingOff != alarmSetOff)
+		if(alarmNow)
 		{
-			oldDrawFunc = display_setDrawFunc(draw);
-			oldBtn1Func = buttons_setFunc(BTN_1, NULL);
-			oldBtn2Func = buttons_setFunc(BTN_2, stopAlarm);
-			oldBtn3Func = buttons_setFunc(BTN_3, NULL);
-			pwrmgr_setState(PWR_ACTIVE_ALARM, PWR_STATE_IDLE);
-			tune_play(tuneAlarm, VOL_ALARM, PRIO_ALARM);
-		}
+			if(wasGoingOff != alarmSetOff)
+			{
+				oldDrawFunc = display_setDrawFunc(draw);
+				oldBtn1Func = buttons_setFunc(BTN_1, NULL);
+				oldBtn2Func = buttons_setFunc(BTN_2, stopAlarm);
+				oldBtn3Func = buttons_setFunc(BTN_3, NULL);
+				pwrmgr_setState(PWR_ACTIVE_ALARM, PWR_STATE_IDLE);
+				tune_play(tuneAlarm, VOL_ALARM, PRIO_ALARM);
+			}
 
-		if(!led_flashing())
-		{
-			static led_t ledFlash = LED_GREEN;
-			ledFlash = (ledFlash == LED_GREEN) ? LED_RED : LED_GREEN;
-			led_flash(ledFlash, 150, 255);
+			if(!led_flashing())
+			{
+				static led_t ledFlash = LED_GREEN;
+				ledFlash = (ledFlash == LED_GREEN) ? LED_RED : LED_GREEN;
+				led_flash(ledFlash, 150, 255);
+			}
 		}
+		else if(!alarmNow)
+			stopAlarm();
 	}
-	else if(!alarmNow && alarmSetOff)
-		stopAlarm();
 }
 
 void alarm_updateNextAlarm()
@@ -102,34 +107,45 @@ void alarm_updateNextAlarm()
 static bool goingOff()
 {
 	alarm_s nextAlarm;
+	
+	// Make sure we're in 24 hour mode
+	time_s time;
+	time.hour = timeDate.time.hour;
+	time.ampm = timeDate.time.ampm;
+	time_timeMode(&time, TIMEMODE_24HR);
 
-	if(alarm_getNext(&nextAlarm) && alarm_dayEnabled(nextAlarm.days, timeData.day) && nextAlarm.hour == timeData.hour && nextAlarm.min == timeData.mins)
+	if(alarm_getNext(&nextAlarm) && alarm_dayEnabled(nextAlarm.days, timeDate.date.day) && nextAlarm.hour == time.hour && nextAlarm.min == timeDate.time.mins)
 	{
-		if(timeData.secs == 0)
-		{
+		if(timeDate.time.secs == 0)
 			alarmSetOff = true;
-			//getNextAlarm();
-		}
 		return true;
 	}
 	return false;
 }
 
-// This func needs to be ran when an alarm has changed, time has changed or an alarm has gone off
+// This func needs to be ran when an alarm has changed, time has changed or an active alarm has been turned off
 static void getNextAlarm()
 {
-	byte next = UCHAR_MAX;
+	byte next = NOALARM;
 	uint nextTime = UINT_MAX;
 
+	// Make sure time is in 24 hour mode
+	time_s timeNow;
+	timeNow.hour = timeDate.time.hour;
+	timeNow.ampm = timeDate.time.ampm;
+	time_timeMode(&timeNow, TIMEMODE_24HR);
+
 	// Now in minutes from start of week
-	uint now = toMinutes(timeData.hour, timeData.mins + 1, timeData.day);
+	uint now = toMinutes(timeNow.hour, timeDate.time.mins + 1, timeDate.date.day);
 
 	// Loop through alarms
 	LOOPR(ALARM_COUNT, i)
 	{
+		// Get alarm data
 		alarm_s alarm;
 		alarm_get(i, &alarm);
 
+		// Not enabled
 		if(!alarm.enabled)
 			continue;
 
@@ -194,17 +210,14 @@ static display_t draw()
 		draw_bitmap_set(&img);
 		draw_bitmap_s2(&img);
 	}
-
+	
 	// Draw time
-	byte hour = timeData.hour;
-	char ampm = time_hourAmPm(&hour);
-	char buff[7];
-	sprintf_P(buff, PSTR(TIME_FORMAT_SMALL), hour, timeData.mins, ampm);
-	draw_string(buff,NOINVERT,79,20);
+	draw_string(time_timeStr(), NOINVERT, 79, 20);
 
 	// Draw day
-	strcpy_P(buff, days[timeData.day]);
-	draw_string(buff,false,86,36);
+	char buff[BUFFSIZE_STR_DAYS];
+	strcpy_P(buff, days[timeDate.date.day]);
+	draw_string(buff, false, 86, 36);
 
 	return DISPLAY_DONE;
 }

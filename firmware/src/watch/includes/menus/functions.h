@@ -42,7 +42,7 @@ void doAction(bool);
 void setPrevMenuOpen(prev_menu_s*, menu_f);
 void setPrevMenuExit(prev_menu_s*);
 bool exitSelected(void);
-void do10sStuff(byte*, byte);
-void do1sStuff(byte*, byte, byte, byte);
+//void do10sStuff(byte*, byte);
+//void do1sStuff(byte*, byte, byte, byte);
 
 #endif /* FUNCTIONS_H_ */

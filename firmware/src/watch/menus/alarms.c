@@ -12,24 +12,22 @@
 
 #define SETTING_NOW_NONE		0
 #define SETTING_NOW_EN			1
-#define SETTING_NOW_10HOUR		2
-#define SETTING_NOW_1HOUR		3
-#define SETTING_NOW_10MIN		4
-#define SETTING_NOW_1MIN		5
-#define SETTING_NOW_AMPM		6
-#define SETTING_NOW_DAY_MON		7
-#define SETTING_NOW_DAY_TUE		8
-#define SETTING_NOW_DAY_WED		9
-#define SETTING_NOW_DAY_THUR	10
-#define SETTING_NOW_DAY_FRI		11
-#define SETTING_NOW_DAY_SAT		12
-#define SETTING_NOW_DAY_SUN		13
+#define SETTING_NOW_HOUR		2
+#define SETTING_NOW_MIN			3
+#define SETTING_NOW_AMPM		4
+#define SETTING_NOW_DAY_MON		5
+#define SETTING_NOW_DAY_TUE		6
+#define SETTING_NOW_DAY_WED		7
+#define SETTING_NOW_DAY_THUR	8
+#define SETTING_NOW_DAY_FRI		9
+#define SETTING_NOW_DAY_SAT		10
+#define SETTING_NOW_DAY_SUN		11
 
 #define ALARM_SET_CHAR (CHAR_TICK)
 #define ALARM_UNSET_CHAR ('.')
 
 static prev_menu_s prevMenuData;
-static alarm_s alarm;
+static alarm_s alarm; // Data for the alarm we are currently editing
 
 static void mSelect(void);
 static void itemLoader(byte);
@@ -37,7 +35,6 @@ static void selectAlarm(void);
 static display_t alarmsDraw(void);
 static void alarmsDown(void);
 static void alarmsUp(void);
-static void mode12hrAmPm(void);
 static byte getMaxValForSetting(void);
 static void showAlarmStr(byte, alarm_s*);
 static void makeAlarmStr(char*, alarm_s*);
@@ -76,9 +73,11 @@ static void itemLoader(byte num)
 static void selectAlarm()
 {
 	static byte dayBit;
+	static bool wasPM;
 
 	setMenuFuncs(alarmsDown, alarmsUp, mSelect, itemLoader);
 	menuData.func.draw = alarmsDraw;
+
 	switch(setting.now)
 	{
 		case SETTING_NOW_NONE:
@@ -88,24 +87,64 @@ static void selectAlarm()
 			break;
 		case SETTING_NOW_EN:
 			alarm.enabled = setting.val;
-			setting.now = SETTING_NOW_10HOUR;
-			setting.val = div10(alarm.hour);
+			setting.now = SETTING_NOW_HOUR;
+
+			time_s time;
+			time.hour = alarm.hour;
+			time.ampm = CHAR_24;
+			time_timeMode(&time, appConfig.timeMode);
+
+			setting.val = time.hour;
+			
+			wasPM = (alarm.hour >= 12);
+
 			break;
-		case SETTING_NOW_10HOUR:
-			do10sStuff(&alarm.hour, SETTING_NOW_1HOUR);
+		case SETTING_NOW_HOUR:
+		{
+			byte hour = setting.val;
+			byte max = appConfig.timeMode == TIMEMODE_12HR ? 12 : 23;
+			if(hour > max)
+				hour = max;
+
+			if(appConfig.timeMode == TIMEMODE_12HR)
+			{
+				time_s time;
+				time.hour = hour;
+				time.ampm = wasPM ? CHAR_PM : CHAR_AM;
+				time_timeMode(&time, TIMEMODE_24HR);
+				hour = time.hour;
+			}
+
+			alarm.hour = hour;
+
+			setting.now = SETTING_NOW_MIN;
+			setting.val = alarm.min;
+		}
 			break;
-		case SETTING_NOW_1HOUR:
-			do1sStuff(&alarm.hour, !appConfig.mode12hr ? 23 : 12, SETTING_NOW_10MIN, div10(alarm.min));
-			break;
-		case SETTING_NOW_10MIN:
-			do10sStuff(&alarm.min, SETTING_NOW_1MIN);
-			break;
-		case SETTING_NOW_1MIN:
-			do1sStuff(&alarm.min, 59, !appConfig.mode12hr ? SETTING_NOW_DAY_MON : SETTING_NOW_AMPM, alarm.mon);
+		case SETTING_NOW_MIN:
+			alarm.min = setting.val;
+			if(appConfig.timeMode == TIMEMODE_12HR)
+			{
+				setting.now = SETTING_NOW_AMPM;
+				setting.val = wasPM;
+			}
+			else
+			{
+				setting.now = SETTING_NOW_DAY_MON;
+				setting.val = alarm.mon;
+			}
 			dayBit = 0;
 			break;
 		case SETTING_NOW_AMPM:
+		{
+			time_s time;
+			time.hour = alarm.hour;
+			time.ampm = setting.val ? CHAR_PM : CHAR_AM;
+			time_timeMode(&time, TIMEMODE_24HR);
+			alarm.hour = time.hour;
 			setting.now = SETTING_NOW_DAY_MON;
+			setting.val = alarm.mon;
+		}
 			break;
 		case SETTING_NOW_DAY_MON:
 		case SETTING_NOW_DAY_TUE:
@@ -137,8 +176,9 @@ static void selectAlarm()
 
 static display_t alarmsDraw()
 {
+	byte w = 5;
 	byte x;
-	char buff[2];
+	char buff[4];
 	buff[1] = 0x00;
 	switch(setting.now)
 	{
@@ -146,28 +186,17 @@ static display_t alarmsDraw()
 			x = 7;
 			buff[0] = setting.val ? ALARM_SET_CHAR : ALARM_UNSET_CHAR;
 			break;
-		case SETTING_NOW_10HOUR:
-		case SETTING_NOW_1HOUR:
-		case SETTING_NOW_10MIN:
-		case SETTING_NOW_1MIN:
-			{
-				x = 21 + (7 * (setting.now - SETTING_NOW_10HOUR));
-				if(setting.now > SETTING_NOW_1HOUR)
-					x += 7;
-
-				buff[0] = setting.val + 48;
-				/*if(!appConfig.mode12hr || alarm.hour != 0 || setting.val != 0)
-					buff[0] = setting.val + 48;
-				else if(setting.now == SETTING_NOW_10HOUR)
-					buff[0] = '1';
-				else if(setting.now == SETTING_NOW_1HOUR)
-					buff[0] = '2';*/
-			}
+		case SETTING_NOW_HOUR:
+			x = 21;
+			w = 11;
+			break;
+		case SETTING_NOW_MIN:
+			x = 42;
+			w = 11;
 			break;
 		case SETTING_NOW_AMPM:
 			x = 56;
-			byte hour = alarm.hour;
-			buff[0] = time_hourAmPm(&hour);
+			buff[0] = setting.val ? CHAR_PM : CHAR_AM;
 			break;
 		case SETTING_NOW_DAY_MON:
 		case SETTING_NOW_DAY_TUE:
@@ -188,7 +217,11 @@ static display_t alarmsDraw()
 
 	byte y = 8 + ((menuData.selected * 8) - (menuData.scroll * 8));
 	
-	draw_clearArea(x, y, 5);
+	draw_clearArea(x, y, w);
+	
+	if(setting.now == SETTING_NOW_HOUR || setting.now == SETTING_NOW_MIN)
+		sprintf_P(buff, PSTR("%02hhu"), setting.val);
+
 	draw_string(buff, true, x, y);
 	
 	return DISPLAY_DONE;
@@ -196,53 +229,33 @@ static display_t alarmsDraw()
 
 static void alarmsUp()
 {
-	if(setting.now != SETTING_NOW_AMPM)
-	{
-		setting.val++;
-		if(setting.val > getMaxValForSetting())
-			setting.val = 0;
-	}
-	else
-		mode12hrAmPm();
+	setting.val++;
+	if(setting.val > getMaxValForSetting())
+		setting.val = 0;
+
+	if(setting.now == SETTING_NOW_HOUR && appConfig.timeMode == TIMEMODE_12HR && setting.val == 0)
+		setting.val = 1;
 }
 
 static void alarmsDown()
 {
-	if(setting.now != SETTING_NOW_AMPM)
-	{
-		setting.val--;
-		byte max = getMaxValForSetting();
-		if(setting.val > max)
-			setting.val = max;
-	}
-	else
-		mode12hrAmPm();
-}
+	setting.val--;
+	if(setting.now == SETTING_NOW_HOUR && appConfig.timeMode == TIMEMODE_12HR && setting.val == 0)
+		setting.val = 12;
 
-static void mode12hrAmPm()
-{
-	if(alarm.hour < 12)
-		alarm.hour += 12;
-	else
-		alarm.hour -= 12;
+	byte max = getMaxValForSetting();
+	if(setting.val > max)
+		setting.val = max;
 }
 
 static byte getMaxValForSetting()
 {
 	switch(setting.now)
 	{
-		case SETTING_NOW_10HOUR:
-		{
-			if(!appConfig.mode12hr)
-				return 2;
-			else
-				return 1;
-		}
-		case SETTING_NOW_1HOUR:
-		case SETTING_NOW_1MIN:
-			return 9;
-		case SETTING_NOW_10MIN:
-			return 5;
+		case SETTING_NOW_HOUR:
+			return appConfig.timeMode == TIMEMODE_12HR ? 12 : 23;
+		case SETTING_NOW_MIN:
+			return 59;
 	}
 	return 1;
 }
@@ -256,10 +269,12 @@ static void showAlarmStr(byte idx, alarm_s* alarm)
 
 static void makeAlarmStr(char* buff, alarm_s* alarm)
 {
-	byte hour = alarm->hour;
-	char ampm = time_hourAmPm(&hour);
+	time_s time;
+	time.hour = alarm->hour;
+	time.ampm = CHAR_24;
+	time_timeMode(&time, appConfig.timeMode);
 
-	sprintf_P(buff + 1, PSTR(" %02hhu:%02hhu%c "), hour, alarm->min, ampm);
+	sprintf_P(buff + 1, PSTR(" %02hhu:%02hhu%c "), time.hour, alarm->min, time.ampm);
 
 	buff[0] = alarm->enabled ? ALARM_SET_CHAR : ALARM_UNSET_CHAR;
 	buff[16] = 0x00;

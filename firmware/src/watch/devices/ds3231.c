@@ -49,24 +49,25 @@ void ds3231_sqw(rtc_sqw_t enable)
 }
 
 // Get time
-void ds3231_get(time_s* timeData)
+void ds3231_get(timeDate_s* timeData)
 {
-	read(DS3231_ADDR_SECS, (byte*)timeData, sizeof(time_s));
+	byte data[7];
+	read(DS3231_ADDR_SECS, data, sizeof(data));
 
-	timeData->secs	= bcd2dec(timeData->secs);
-	timeData->mins	= bcd2dec(timeData->mins);
-	timeData->hour	= bcd2dec(timeData->hour);
-//	timeData.day	= bcd2dec(timeData.day); // Don't need to convert to DEC since it only stores 0 - 6
-	timeData->date	= bcd2dec(timeData->date);
-	timeData->month	= bcd2dec(timeData->month);
-	timeData->year	= bcd2dec(timeData->year);
+	timeData->time.secs		= bcd2dec(data[0]);
+	timeData->time.mins		= bcd2dec(data[1]);
+	timeData->time.hour		= bcd2dec(data[2]);
+	timeData->date.day		= data[3]; // Don't need to convert to DEC since it only stores 0 - 6
+	timeData->date.date		= bcd2dec(data[4]);
+	timeData->date.month	= bcd2dec(data[5]);
+	timeData->date.year		= bcd2dec(data[6]);
 
 	// Month and day start at 1, but we want to start at 0
-	if(timeData->day > 0)
-		timeData->day--;
+	if(timeData->date.day > 0)
+		timeData->date.day--;
 
-	if(timeData->month > 0)
-		timeData->month--;
+	if(timeData->date.month > 0)
+		timeData->date.month--;
 /*
 	// Can't subtract 1 if month is BCD 10, have to do it manually
 	byte month = timeData->month;
@@ -81,20 +82,22 @@ void ds3231_get(time_s* timeData)
 }
 
 // Save time
-void ds3231_save(time_s* timeData)
+void ds3231_save(timeDate_s* timeData)
 {
 	// Month is stored starting at 0 in program, but RTC starts at 1
 //	byte month = timeData->month + 1;
 //	if(month == 0b00001010) // invalid BCD, added 1 to 9 = 10 = bad
 //		month = 0b00010000; // add 6 to fix, but that increases program size, so just set manually
 
-	write(DS3231_ADDR_SECS,	dec2bcd(timeData->secs));
-	write(DS3231_ADDR_MINS,	dec2bcd(timeData->mins));
-	write(DS3231_ADDR_HRS,	dec2bcd(timeData->hour));
-	write(DS3231_ADDR_DAY,	timeData->day + 1); // Don't need to convert to BCD since it only stores 0 - 6, Day is also stored starting at 0 in program, but RTC starts at 1
-	write(DS3231_ADDR_DATE,	dec2bcd(timeData->date));
-	write(DS3231_ADDR_MONTH,	dec2bcd(timeData->month + 1));
-	write(DS3231_ADDR_YEAR,	dec2bcd(timeData->year));
+// TODO: write in one go instead of individually
+
+	write(DS3231_ADDR_SECS,	dec2bcd(timeData->time.secs));
+	write(DS3231_ADDR_MINS,	dec2bcd(timeData->time.mins));
+	write(DS3231_ADDR_HRS,	dec2bcd(timeData->time.hour));
+	write(DS3231_ADDR_DAY,	timeData->date.day + 1); // Don't need to convert to BCD since it only stores 0 - 6, Day is also stored starting at 0 in program, but RTC starts at 1
+	write(DS3231_ADDR_DATE,	dec2bcd(timeData->date.date));
+	write(DS3231_ADDR_MONTH,	dec2bcd(timeData->date.month + 1));
+	write(DS3231_ADDR_YEAR,	dec2bcd(timeData->date.year));
 }
 
 // Update temperature

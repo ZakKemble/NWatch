@@ -141,11 +141,7 @@ static display_t draw()
 	draw_bitmap_s2(&img);
 
 	// Draw time
-	byte hour = timeData.hour;
-	char ampm = time_hourAmPm(&hour);
-	char buff[7];
-	sprintf_P(buff, PSTR(TIME_FORMAT_SMALL), hour, timeData.mins, ampm);
-	draw_string(buff,NOINVERT,48,0);
+	draw_string(time_timeStr(), NOINVERT, 48, 0);
 
 	return DISPLAY_BUSY;
 }

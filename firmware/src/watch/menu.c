@@ -85,7 +85,7 @@ display_t menu_draw()
 
 static void drawTitle()
 {
-	char buff[24];
+	char buff[BUFFSIZE_STR_MENU];
 	memset(buff, ' ', sizeof(buff));
 	strcpy_P(buff + (9 - (strlen_P(menuData.title) / 2)), menuData.title);
 	draw_string(buff, false, 0, 0);
@@ -190,7 +190,7 @@ void setMenuOption_P(byte num, const char* name, const byte* icon, menu_f action
 	if(num != operation.id)
 		return;
 
-	char buff[24];
+	char buff[BUFFSIZE_STR_MENU];
 	strcpy_P(buff, name);
 	setMenuOption(num, buff, icon, actionFunc);
 }
@@ -210,7 +210,8 @@ void setMenuOption(byte num, const char* name, const byte* icon, menu_f actionFu
 				//	a -= (FRAME_WIDTH+32);
 				float x = ((a/(float)(FRAME_WIDTH-32)) * (M_PI / 2)) + (M_PI / 4);
 				byte y = (sin(x) * 32);
-				y = 28;
+				y = 28; // comment this out for magic
+
 				image_s img = newImage(operation.data, y + 4 - 16, icon != NULL ? icon : menu_default, 32, 32, WHITE, NOINVERT, 0);
 				draw_bitmap_set(&img);
 				draw_bitmap_s2(NULL);
@@ -267,7 +268,7 @@ bool exitSelected()
 {
 	return menuData.selected == menuData.optionCount - 1;
 }
-
+/*
 void do10sStuff(byte* val, byte now)
 {
 	byte mod = mod10(*val);
@@ -279,16 +280,19 @@ void do10sStuff(byte* val, byte now)
 
 void do1sStuff(byte* val, byte max, byte now, byte newVal)
 {
-	byte temp = *val;
-	temp = ((temp / 10) * 10) + setting.val;
-	if(temp > max)
-		temp = max;
-	*val = temp;
+	if(val != NULL)
+	{
+		byte temp = *val;
+		temp = ((temp / 10) * 10) + setting.val;
+		if(temp > max)
+			temp = max;
+		*val = temp;
+	}
 
 	setting.val = newVal;
 	setting.now = now;
 }
-
+*/
 static void clear()
 {
 	memset(&menuData.func, 0, sizeof(menuFuncs_t));
@@ -307,19 +311,7 @@ void back()
 
 void beginAnimation(menu_f onComplete)
 {
-	/*static bool aa;
-	if(aa)
-	{
-		//gogo = menuData.optionCount + 2;
-		menuData.selected = menuData.optionCount + 2;
-	}
-	else
-	{*/
-		animation_start(onComplete, ANIM_MOVE_OFF);
-	//	aa = true;
-	//}
-
-	//animation_start(onComplete, ANIM_MOVE_OFF);
+	animation_start(onComplete, ANIM_MOVE_OFF);
 }
 
 void beginAnimation2(menu_f onComplete)

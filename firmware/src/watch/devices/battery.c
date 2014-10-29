@@ -57,15 +57,15 @@ void battery_init()
 void battery_setUpdate(byte secs)
 {
 	changeCount = secs;
-	lastSecs = timeData.secs;
+	lastSecs = timeDate.time.secs;
 }
 
 void battery_update()
 {
 	// See if seconds has changed
-	if(lastSecs == timeData.secs)
+	if(lastSecs == timeDate.time.secs)
 		return;
-	lastSecs = timeData.secs;
+	lastSecs = timeDate.time.secs;
 
 	if(changeCount)
 	{

@@ -56,6 +56,7 @@
 #include "games/game2.h"
 #include "apps/stopwatch.h"
 #include "apps/torch.h"
+#include "apps/screenshot.h"
 #include "watchfaces/normal.h"
 #include "watchfaces/lowbatt.h"
 #include "watchfaces/ui.h"

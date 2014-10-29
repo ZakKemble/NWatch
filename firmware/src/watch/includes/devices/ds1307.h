@@ -16,8 +16,8 @@
 
 void ds1307_init(void);
 void ds1307_sqw(rtc_sqw_t);
-void ds1307_get(time_s*);
-void ds1307_save(time_s*);
+void ds1307_get(timeDate_s*);
+void ds1307_save(timeDate_s*);
 void ds1307_tempUpdate(void);
 void ds1307_tempGet(rtc_temperature_s*);
 void ds1307_setUserAlarmWake(alarm_s*);

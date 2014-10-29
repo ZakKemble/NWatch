@@ -49,7 +49,7 @@ void uart_init()
 	UCSR0B = _BV(TXEN0)|_BV(RXEN0)|_BV(RXCIE0);
 	stdout = &uart_io;
 #else
-	UCSR0B = _BV(RXEN0)|_BV(RXCIE0);
+	UCSR0B = _BV(TXEN0)|_BV(RXEN0)|_BV(RXCIE0);
 #endif
 }
 

@@ -18,10 +18,7 @@ void watchface_small(void)
 
 static display_t draw(void)
 {
-	byte hour = timeData.hour;
-	char ampm = time_hourAmPm(&hour);
-	char buff[7];
-	sprintf_P(buff, PSTR(TIME_FORMAT_SMALL), hour, timeData.mins, ampm);
-	draw_string(buff,false,48,28);
+	draw_string(time_timeStr(), false, 48, 28);
+
 	return DISPLAY_DONE;
 }

@@ -6,18 +6,16 @@
  * Web: http://blog.zakkemble.co.uk/diy-digital-wristwatch/
  */
 
-#include "common.h"
+#define __SFR_OFFSET 0
 
-#if COMPILE_SCREENSHOT
+.text
+.global draw_bitmap
 
-void screenshot_send()
-{
-//	byte b;
-//	if(!uart_get_nb(&b) || (char)b != 's')
-//		return;
+.extern oledBuffer
 
-	for(uint i=0;i<FRAME_BUFFER_SIZE;i++)
-		uart_put(oledBuffer[i]);
-}
+draw_bitmap:
 
-#endif
+
+
+	ret
+

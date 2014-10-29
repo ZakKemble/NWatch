@@ -272,12 +272,19 @@ asm("  .section .version\n"
 #endif
 #endif
 #else // 0
+
 #if (F_CPU + BAUD_RATE * 4L) / (BAUD_RATE * 8L) - 1 > 250
 #error Unachievable baud rate (too slow) BAUD_RATE 
 #endif // baud rate slow check
+
+/*
+// Removed to make 1000000 baud work
+
 #if (F_CPU + BAUD_RATE * 4L) / (BAUD_RATE * 8L) - 1 < 3
 #error Unachievable baud rate (too fast) BAUD_RATE 
 #endif // baud rate fastn check
+*/
+
 #endif
 
 /* Watchdog settings */

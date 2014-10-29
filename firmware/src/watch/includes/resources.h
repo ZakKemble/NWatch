@@ -9,13 +9,10 @@
 #ifndef RESOURCES_H_
 #define RESOURCES_H_
 
-#define DATE_FORMAT ("%s %02hhu %s 20%02hhu")
-#define TIME_FORMAT_SMALL ("%02hhu:%02hhu%c")
-
 extern const char dowChars[];
 
-extern const char days[7][4];
-extern const char months[12][4];
+extern const char days[7][BUFFSIZE_STR_DAYS];
+extern const char months[12][BUFFSIZE_STR_MONTHS];
 
 extern const byte livesImg[];
 extern const byte stopwatch[];
@@ -60,9 +57,6 @@ extern const byte battIconFull[];
 #define SMALLFONT_WIDTH 5
 #define SMALLFONT_HEIGHT 8
 extern const byte smallFont[][5];
-
-#define CHAR_DEGREES	127
-#define CHAR_TICK		128
 
 #define MIDFONT_WIDTH 19
 #define MIDFONT_HEIGHT 24

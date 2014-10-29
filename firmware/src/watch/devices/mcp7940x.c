@@ -44,7 +44,7 @@ void mcp7940x_sqw(rtc_sqw_t enable)
 }
 
 // Get time
-void mcp7940x_get(time_s* timeData)
+void mcp7940x_get(timeDate_s* timeData)
 {
 	read(MCP7940X_ADDR_SECS, (byte*)timeData, sizeof(time_s));
 
@@ -67,7 +67,7 @@ void mcp7940x_get(time_s* timeData)
 }
 
 // Save time
-void mcp7940x_save(time_s* timeData)
+void mcp7940x_save(timeDate_s* timeData)
 {
 	write(MCP7940X_ADDR_SECS,	dec2bcd(timeData->secs | _BV(MCP7940X_BIT_ST))); // Make sure ST bit is set
 	write(MCP7940X_ADDR_MINS,	dec2bcd(timeData->mins));

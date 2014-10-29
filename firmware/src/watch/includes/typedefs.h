@@ -10,6 +10,7 @@
 #define TYPEDEFS_H_
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #define BLACK	0
 #define WHITE	1
@@ -17,14 +18,16 @@
 #define NOINVERT	false
 //#define INVERT		true
 
-typedef unsigned char byte;
-typedef unsigned long ulong;
-typedef unsigned int uint;
+typedef uint8_t byte;
+typedef uint16_t uint;
+typedef uint32_t ulong;
 
 // bool from stdbool does extra stuff to make the value
 // always either 0 or 1, which isn't needed most of the time.
 // So here's BOOL which doesn't do that.
-typedef	unsigned char	BOOL;
+typedef	uint8_t BOOL;
+
+typedef uint32_t timestamp_t;
 
 typedef enum
 {
@@ -70,11 +73,26 @@ typedef struct {
 	byte secs;
 	byte mins;
 	byte hour;
+	char ampm;
+}time_s;
+
+typedef struct {
 	day_t day;
 	byte date;
 	month_t month;
 	byte year;
-}time_s;
+}date_s;
+
+typedef struct {
+	time_s time;
+	date_s date;
+}timeDate_s;
+
+typedef enum
+{
+	TIMEMODE_24HR = 0,
+	TIMEMODE_12HR = 1
+} timemode_t;
 
 typedef struct{
 	byte hour;
@@ -107,7 +125,7 @@ typedef struct{
 	//byte clockface;
 	bool display180;
 	bool showFPS;
-	bool mode12hr;
+	timemode_t timeMode;
 	union {
 		byte volumes;
 		struct{ // get rid of these bitfields?

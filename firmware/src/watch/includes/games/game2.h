@@ -11,7 +11,7 @@
 
 #if COMPILE_GAME2
 
-#define GAME2_NAME "Car dodge"
+#define GAME2_NAME STR_GAME2
 
 void game2_start(void);
 

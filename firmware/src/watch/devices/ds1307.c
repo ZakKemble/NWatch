@@ -52,7 +52,7 @@ void ds1307_sqw(rtc_sqw_t enable)
 }
 
 // Get time
-void ds1307_get(time_s* timeData)
+void ds1307_get(timeDate_s* timeData)
 {
 	read(DS1307_ADDR_SECS, (byte*)timeData, sizeof(time_s));
 
@@ -73,7 +73,7 @@ void ds1307_get(time_s* timeData)
 }
 
 // Save time
-void ds1307_save(time_s* timeData)
+void ds1307_save(timeDate_s* timeData)
 {
 	write(DS1307_ADDR_SECS,	dec2bcd(timeData->secs));
 	write(DS1307_ADDR_MINS,	dec2bcd(timeData->mins));

@@ -41,8 +41,8 @@ void global_init()
 
 void global_update()
 {
-	static bool lastUsbConnected;
-	static bool lastCharging;
+	static BOOL lastUsbConnected;
+	static BOOL lastCharging;
 	static millis8_t lastCheck;
 
 	millis8_t now = millis();
@@ -50,8 +50,8 @@ void global_update()
 		return;
 	lastCheck = now;
 	
-	bool usbConnected = USB_CONNECTED();
-	bool charging = CHARGING();
+	BOOL usbConnected = USB_CONNECTED();
+	BOOL charging = CHARGING();
 
 	if(usbConnected != lastUsbConnected)
 	{
@@ -67,8 +67,8 @@ void global_update()
 			tune_play(tuneUsbCharged, VOL_UI, PRIO_UI);
 			
 			// save time ONLY WHEN USB UNPLUGGED
-			memcpy(&chargeFinishTime, &timeData, sizeof(time_s));
-		}			
+			memcpy(&chargeFinishTime, &timeDate, sizeof(time_s));
+		}
 	}
 }
 

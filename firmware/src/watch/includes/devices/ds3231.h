@@ -16,8 +16,8 @@
 
 void ds3231_init(void);
 void ds3231_sqw(rtc_sqw_t);
-void ds3231_get(time_s*);
-void ds3231_save(time_s*);
+void ds3231_get(timeDate_s*);
+void ds3231_save(timeDate_s*);
 void ds3231_tempUpdate(void);
 void ds3231_tempGet(rtc_temperature_s*);
 void ds3231_setUserAlarmWake(alarm_s*);
