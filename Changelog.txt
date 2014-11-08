@@ -1,3 +1,10 @@
+2014-11-08:
+	Software:
+	- Updated Russian translation (day of week images)
+
+	Hardware:
+	- Released N|WatchDev designs (dev board version of the watch)
+
 2014-10-29:
 	Software:
 	- Added 12 hour time option
