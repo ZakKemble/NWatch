@@ -51,7 +51,10 @@ void ds3231_sqw(rtc_sqw_t enable)
 // Get time
 void ds3231_get(timeDate_s* timeData)
 {
-	byte data[7];
+	// Initialize to 0
+	// Otherwise if the RTC isn't connected then we'll end up with trying to use random data for the time
+	byte data[7] = {0};
+
 	read(DS3231_ADDR_SECS, data, sizeof(data));
 
 	timeData->time.secs		= bcd2dec(data[0]);

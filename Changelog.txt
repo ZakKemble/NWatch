@@ -1,3 +1,7 @@
+2014-11-15:
+	Software:
+	- Fixed issue for when RTC isn't connected
+
 2014-11-08:
 	Software:
 	- Updated Russian translation (day of week images)
