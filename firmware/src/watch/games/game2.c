@@ -224,27 +224,17 @@ static display_t draw()
 		quakeY = 0;
 	
 	// Draw my car
-	image_s img = newImage(0, myCar.y + quakeY, carImg, 15, 16, WHITE, NOINVERT, 0);
-	draw_bitmap_set(&img);
 	if(!myCar.hit || (myCar.hit && (now & 64)))
-		draw_bitmap_s2(&img);
+		draw_bitmap(0, myCar.y + quakeY, carImg, 15, 16, NOINVERT, 0);
 
 	char buff[6];
 	if(lives != 255)
 	{
 		// Draw other cars
 		LOOPR(CAR_COUNT, i)
-		{
-			img.x = cars[i].x;
-			img.y = cars[i].y + quakeY;
-			draw_bitmap_s2(&img);
-		}
+			draw_bitmap(cars[i].x, cars[i].y + quakeY, carImg, 15, 16, NOINVERT, 0);
 
 		// Draw road markings
-		img.bitmap = roadMarking;
-		img.width = 8;
-		img.height = 8;
-
 		static byte dotX[3] = {0, 45, 90};
 		LOOP(3, i)
 		{
@@ -253,12 +243,8 @@ static display_t draw()
 			if(dotX[i] >= FRAME_WIDTH && dotX[i] < 255 - 8)
 				dotX[i] = FRAME_WIDTH;
 
-			img.x = dotX[i];
 			LOOP(3, x)
-			{
-				img.y = (x * 16) + quakeY + 16;
-				draw_bitmap_s2(&img);
-			}
+				draw_bitmap(dotX[i], (x * 16) + quakeY + 16, roadMarking, 8, 8, NOINVERT, 0);
 		}
 
 		// Draw score
@@ -266,14 +252,8 @@ static display_t draw()
 		draw_string(buff, false, FRAME_WIDTH - (7*5), 1);
 
 		// Draw lives
-		img.bitmap = livesImg;
-		img.width = 7;
-		img.y = 1;
 		LOOP(lives, i)
-		{
-			img.x = 32 + (8*i);
-			draw_bitmap_s2(&img);
-		}
+			draw_bitmap(32 + (8*i), 1, livesImg, 7, 8, NOINVERT, 0);
 	}
 	else
 	{

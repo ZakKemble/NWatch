@@ -22,10 +22,8 @@ void watchface_lowbatt(void)
 static display_t draw(void)
 {
 	draw_string(time_timeStr(), false, 48, 16);
-	
-	image_s img = newImage((FRAME_WIDTH / 2) - 8, (FRAME_HEIGHT / 2) - 4, battIconEmpty, 16, 8, WHITE, NOINVERT, 0);
-	draw_bitmap_set(&img);
-	draw_bitmap_s2(NULL);
+
+	draw_bitmap((FRAME_WIDTH / 2) - 8, (FRAME_HEIGHT / 2) - 4, battIconEmpty, 16, 8, NOINVERT, 0);
 	
 	return DISPLAY_DONE;
 }

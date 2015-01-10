@@ -20,9 +20,6 @@ void drawBattery()
 		battIcon = battIconHigh;
 	else
 		battIcon = battIconFull;
-	
-	image_s img = newImage(0, FRAME_HEIGHT - 8, battIcon, 16, 8, WHITE, NOINVERT, 0);
-	draw_bitmap_set(&img);
 
-	draw_bitmap_s2(NULL);
+	draw_bitmap(0, FRAME_HEIGHT - 8, battIcon, 16, 8, NOINVERT, 0);
 }

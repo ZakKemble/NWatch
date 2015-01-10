@@ -159,19 +159,8 @@ static display_t menu_drawIcon()
 
 	drawTitle();
 
-	// Create image struct
-	// FIX: struct uses heap, should use stack
-	byte fix = 36;
-	image_s img = newImage(46, 14, selectbar_top, fix, 8, WHITE, NOINVERT, 0);
-	draw_bitmap_set(&img);
-
-	// Draw ...
-	draw_bitmap_s2(&img);
-
-	// Draw ...
-	img.y = 42;
-	img.bitmap = selectbar_bottom;
-	draw_bitmap_s2(&img);
+	draw_bitmap(46, 14, selectbar_top, 36, 8, NOINVERT, 0);
+	draw_bitmap(46, 42, selectbar_bottom, 36, 8, NOINVERT, 0);
 
 	LOOP(menuData.optionCount, i)
 	{
@@ -212,9 +201,7 @@ void setMenuOption(byte num, const char* name, const byte* icon, menu_f actionFu
 				byte y = (sin(x) * 32);
 				y = 28; // comment this out for magic
 
-				image_s img = newImage(operation.data, y + 4 - 16, icon != NULL ? icon : menu_default, 32, 32, WHITE, NOINVERT, 0);
-				draw_bitmap_set(&img);
-				draw_bitmap_s2(NULL);
+				draw_bitmap(operation.data, y + 4 - 16, icon != NULL ? icon : menu_default, 32, 32, NOINVERT, 0);
 			}
 			break;
 		case OPERATION_DRAWNAME_ICON:

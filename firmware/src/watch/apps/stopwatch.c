@@ -105,40 +105,13 @@ static display_t draw()
 		num1 = (secs / 3600); // hours
 	}
 
-	image_s img = newImage(1, TIME_POS_Y, midFont[div10(num1)], MIDFONT_WIDTH, MIDFONT_HEIGHT, WHITE, NOINVERT, 0);
-	draw_bitmap_set(&img);
-
-	draw_bitmap_s2(&img);
-
-	img.x = 24;
-	img.bitmap = midFont[mod10(num1)];
-	draw_bitmap_s2(&img);
-
-	img.x = 60;
-	img.bitmap = midFont[div10(num2)];
-	draw_bitmap_s2(&img);
-
-	img.x = 83;
-	img.bitmap = midFont[mod10(num2)];
-	draw_bitmap_s2(&img);
-
-	img.x = 104;
-	img.y = 20 - 4 + 12;
-	img.width = FONT_SMALL2_WIDTH;
-	img.height = FONT_SMALL2_HEIGHT;
-	img.bitmap = small2Font[div10(num3)];
-	draw_bitmap_s2(&img);
-
-	img.x = 116;
-	img.bitmap = small2Font[mod10(num3)];
-	draw_bitmap_s2(&img);
-
-	img.x = TIME_POS_X + 46 + 2;
-	img.y = TIME_POS_Y;
-	img.width = FONT_COLON_WIDTH;
-	img.height = FONT_COLON_HEIGHT;
-	img.bitmap = colon;
-	draw_bitmap_s2(&img);
+	draw_bitmap(1, TIME_POS_Y, midFont[div10(num1)], MIDFONT_WIDTH, MIDFONT_HEIGHT, NOINVERT, 0);
+	draw_bitmap(24, TIME_POS_Y, midFont[mod10(num1)], MIDFONT_WIDTH, MIDFONT_HEIGHT, NOINVERT, 0);
+	draw_bitmap(60, TIME_POS_Y, midFont[div10(num2)], MIDFONT_WIDTH, MIDFONT_HEIGHT, NOINVERT, 0);
+	draw_bitmap(83, TIME_POS_Y, midFont[mod10(num2)], MIDFONT_WIDTH, MIDFONT_HEIGHT, NOINVERT, 0);
+	draw_bitmap(104, 20 - 4 + 12, small2Font[div10(num3)], FONT_SMALL2_WIDTH, FONT_SMALL2_HEIGHT, NOINVERT, 0);
+	draw_bitmap(116, 20 - 4 + 12, small2Font[mod10(num3)], FONT_SMALL2_WIDTH, FONT_SMALL2_HEIGHT, NOINVERT, 0);
+	draw_bitmap(TIME_POS_X + 46 + 2, TIME_POS_Y, colon, FONT_COLON_WIDTH, FONT_COLON_HEIGHT, NOINVERT, 0);
 
 	// Draw time
 	draw_string(time_timeStr(), NOINVERT, 48, 0);

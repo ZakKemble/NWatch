@@ -8,8 +8,6 @@
 
 #include "common.h"
 
-static image_s* image;
-
 inline static void setBuffByte(byte*, byte, byte, byte);//, byte);
 
 void draw_string_P(const char* string, bool invert, byte x, byte y)
@@ -22,18 +20,12 @@ void draw_string_P(const char* string, bool invert, byte x, byte y)
 
 void draw_string(char* string, bool invert, byte x, byte y)
 {
-	image_s* oldPtr = image;
-	image_s img = newImage(0, y, NULL, SMALLFONT_WIDTH, SMALLFONT_HEIGHT, WHITE, invert, 0);
-	draw_bitmap_set(&img);
-
 	byte charCount = 0;
 	while(*string)
 	{
 		char c = *string - 0x20;
 		byte xx = x + (charCount*7);
-		img.x = xx;
-		img.bitmap = smallFont[(byte)c];
-		draw_bitmap_s2(&img);
+		draw_bitmap(xx, y, smallFont[(byte)c], SMALLFONT_WIDTH, SMALLFONT_HEIGHT, invert, 0);
 		if(invert)
 		{
 			if(xx > 0)
@@ -44,8 +36,6 @@ void draw_string(char* string, bool invert, byte x, byte y)
 		string++;
 		charCount++;
 	}
-	
-	image = oldPtr;
 }
 /*
 // Special draw string
@@ -91,27 +81,12 @@ inline static byte readPixels(const byte* loc, bool invert)
 	return pixels;
 }
 
-void draw_bitmap_set(image_s* _image)
-{
-	image = _image;
-}
-
 // Ultra fast bitmap drawing
 // Only downside is that height must be a multiple of 8, otherwise it gets rounded down to the nearest multiple of 8
 // Drawing bitmaps that are completely on-screen and have a Y co-ordinate that is a multiple of 8 results in best performance
 // PS - Sorry about the poorly named variables ;_;
-// Optimize: Use a local variable temp buffer then apply to global variable OLED buffer?
-void draw_bitmap_do()
+void draw_bitmap(byte x, byte yy, const byte* bitmap, byte w, byte h, bool invert, byte offsetY)
 {
-	byte x = image->x;
-	byte yy = image->y;
-	const byte* bitmap = image->bitmap;
-	byte w = image->width;
-	byte h = image->height;
-//	byte colour = image->foreColour;
-	bool invert = image->invert;
-	byte offsetY = image->offsetY;
-
 	// Apply animation offset
 	yy += animation_offsetY();
 

@@ -115,9 +115,7 @@ static display_t draw()
 		platformXtmp = FRAME_WIDTH - PLATFORM_WIDTH;
 
 	// Draw platform
-	image_s img = newImage(platformXtmp, FRAME_HEIGHT - 8, platform, 12, 8, WHITE, NOINVERT, 0);
-	draw_bitmap_set(&img);
-	draw_bitmap_s2(&img);
+	draw_bitmap(platformXtmp, FRAME_HEIGHT - 8, platform, 12, 8, NOINVERT, 0);
 
 	platformX = platformXtmp;
 
@@ -190,26 +188,16 @@ static display_t draw()
 	}
 
 	// Draw ball
-	img.bitmap = ballImg;
-	img.width = 2;
-	img.x = ball.x;
-	img.y = ball.y;
-	draw_bitmap_s2(&img);
+	draw_bitmap(ball.x, ball.y, ballImg, 2, 8, NOINVERT, 0);
 
 	// Draw blocks
-	img.bitmap = block;
-	img.width = 3;
 	idx = 0;
 	LOOP(BLOCK_COLS, x)
 	{
 		LOOP(BLOCK_ROWS, y)
 		{
 			if(!blocks[idx])
-			{
-				img.x = x * 4;
-				img.y = (y * 4) + 8;
-				draw_bitmap_s2(&img);
-			}
+				draw_bitmap(x * 4, (y * 4) + 8, block, 3, 8, NOINVERT, 0);
 			idx++;
 		}
 	}
@@ -222,14 +210,8 @@ static display_t draw()
 	// Draw lives
 	if(lives != 255)
 	{
-		img.bitmap = livesImg;
-		img.width = 7;
-		img.y = 1;
 		LOOP(lives, i)
-		{
-			img.x = (FRAME_WIDTH - (3*8)) + (8*i);
-			draw_bitmap_s2(&img);
-		}
+			draw_bitmap((FRAME_WIDTH - (3*8)) + (8*i), 1, livesImg, 7, 8, NOINVERT, 0);
 	}	
 
 	// Got all blocks

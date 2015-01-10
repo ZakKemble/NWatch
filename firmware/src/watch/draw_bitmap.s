@@ -9,11 +9,11 @@
 #define __SFR_OFFSET 0
 
 .text
-.global draw_bitmap
+.global draw_bitmap_asm
 
 .extern oledBuffer
 
-draw_bitmap:
+draw_bitmap_asm:
 
 
 

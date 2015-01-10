@@ -204,12 +204,7 @@ static bool stopAlarm()
 static display_t draw()
 {
 	if((millis8_t)millis() < 128)
-	{
-		byte fix = 16;
-		image_s img = newImage(16, fix, menu_alarm, 32, 32, WHITE, NOINVERT, 0);
-		draw_bitmap_set(&img);
-		draw_bitmap_s2(&img);
-	}
+		draw_bitmap(16, 16, menu_alarm, 32, 32, NOINVERT, 0);
 	
 	// Draw time
 	draw_string(time_timeStr(), NOINVERT, 79, 20);

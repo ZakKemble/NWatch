@@ -8,16 +8,30 @@
 
 #include "common.h"
 
+#define TIME_POS_X	1
+#define TIME_POS_Y	20
+#define TICKER_GAP	4
+
+typedef struct
+{
+	byte x;
+	byte y;
+	const byte* bitmap;
+	byte w;
+	byte h;
+	byte offsetY;
+	byte val;
+	byte maxVal;
+	bool moving;
+}tickerData_t;
+
 static display_t draw(void);
 static void drawDate(void);
 #if COMPILE_ANIMATIONS
 static bool animateIcon(bool, byte*);
 #endif
 static display_t ticker(void);
-//static void drawTickerNum(byte, byte, byte, byte, bool, const byte*, byte, byte, byte);
-
-//static s_image usbImage = {0, FRAME_HEIGHT, usbIcon, 16, 8, WHITE, NOINVERT, 0};
-//static s_image chargeImage = {0, FRAME_HEIGHT, chargeIcon, 8, 8, WHITE, NOINVERT, 0};
+static void drawTickerNum(tickerData_t*);
 
 void watchface_normal()
 {
@@ -42,55 +56,43 @@ static display_t draw()
 	// Draw battery icon
 	drawBattery();
 
-	byte fix = 20;
-
-	// Draw USB icon
-	image_s icon = newImage(fix, FRAME_HEIGHT - 9, usbIcon, 16, 8, WHITE, NOINVERT, 0);
-	draw_bitmap_set(&icon);
+	byte x = 20;
 
 #if COMPILE_ANIMATIONS
 	if(animateIcon(USB_CONNECTED(), &usbImagePos))
 	{
-		icon.y = usbImagePos;
-		draw_bitmap_s2(NULL);
-		icon.x += 20;
+		draw_bitmap(x, usbImagePos, usbIcon, 16, 8, NOINVERT, 0);
+		x += 20;
 	}
 #else
 	if(USB_CONNECTED())
 	{
-		draw_bitmap_s2(NULL);
-		icon.x += 20;
+		draw_bitmap(x, FRAME_HEIGHT - 9, usbIcon, 16, 8, NOINVERT, 0);
+		x += 20;
 	}
 #endif
 	
 	// Draw charging icon
-	icon.width = 8;
 #if COMPILE_ANIMATIONS
 	if(animateIcon(CHARGING(), &chargeImagePos))
 	{
-		icon.bitmap = chargeIcon;
-		icon.y = chargeImagePos;
-		draw_bitmap_s2(NULL);
-		icon.x += 12;
+		draw_bitmap(x, chargeImagePos, chargeIcon, 8, 8, NOINVERT, 0);
+		x += 12;
 	}	
 #else
 	if(CHARGING())
 	{
-		icon.bitmap = chargeIcon;
-		draw_bitmap_s2(NULL);
-		icon.x += 12;
+		draw_bitmap(x, FRAME_HEIGHT - 9, chargeIcon, 8, 8, NOINVERT, 0);
+		x += 12;
 	}
 #endif
-
-	icon.y = FRAME_HEIGHT - 8;
 
 #if COMPILE_STOPWATCH
 	// Stopwatch icon
 	if(stopwatch_active())
 	{
-		icon.bitmap = stopwatch;
-		draw_bitmap_s2(&icon);
-		icon.x += 12;
+		draw_bitmap(x, FRAME_HEIGHT - 8, stopwatch, 8, 8, NOINVERT, 0);
+		x += 12;
 	}
 #endif	
 
@@ -106,13 +108,12 @@ static display_t draw()
 		
 		char buff[9];
 		sprintf_P(buff, PSTR("%02hhu:%02hhu%c"), alarmTime.hour, alarmTime.mins, alarmTime.ampm);
-		draw_string(buff, false, icon.x, FRAME_HEIGHT - 8);
-		icon.x += (alarmTime.ampm == CHAR_24) ? 35 : 42;
+		draw_string(buff, false, x, FRAME_HEIGHT - 8);
 
-		icon.bitmap = dowImg[alarm_getNextDay()];
-		draw_bitmap_s2(&icon);
+		x += (alarmTime.ampm == CHAR_24) ? 35 : 42;
+		draw_bitmap(x, FRAME_HEIGHT - 8, dowImg[alarm_getNextDay()], 8, 8, NOINVERT, 0);
 
-//		icon.x += 9;
+//		x += 9;
 	}
 
 	return busy;
@@ -151,11 +152,6 @@ static bool animateIcon(bool active, byte* pos)
 }
 #endif
 
-#define TIME_POS_X	1
-#define TIME_POS_Y	20
-#define TICKER_GAP	4
-
-static void drawTickerNum2(image_s*, byte, byte, bool);
 static display_t ticker()
 {
 	static byte yPos;
@@ -232,44 +228,62 @@ static display_t ticker()
 		memset(moving2, false, sizeof(moving2));
 	}
 
-	// Set up image
-	image_s img = newImage(104, 28, (const byte*)&small2Font, FONT_SMALL2_WIDTH, FONT_SMALL2_HEIGHT, WHITE, false, yPos_secs);
-	draw_bitmap_set(&img);
-	
+	tickerData_t data;
+
 	// Seconds
-	drawTickerNum2(&img, div10(timeDate.time.secs), 5, moving2[4]);
-	img.x = 116;
-	drawTickerNum2(&img, mod10(timeDate.time.secs), 9, moving);
+	data.x = 104;
+	data.y = 28;
+	data.bitmap = (const byte*)&small2Font;
+	data.w = FONT_SMALL2_WIDTH;
+	data.h = FONT_SMALL2_HEIGHT;
+	data.offsetY = yPos_secs;
+	data.val = div10(timeDate.time.secs);
+	data.maxVal = 5;
+	data.moving = moving2[4];
+	drawTickerNum(&data);
+
+	data.x = 116;
+	data.val = mod10(timeDate.time.secs);
+	data.maxVal = 9;
+	data.moving = moving;
+	drawTickerNum(&data);
 	
 	// Set new font data for hours and minutes
-	img.y = TIME_POS_Y;
-	img.width = MIDFONT_WIDTH;
-	img.height = MIDFONT_HEIGHT;
-	img.bitmap = (const byte*)&midFont;
-	img.offsetY = yPos;
+	data.y = TIME_POS_Y;
+	data.w = MIDFONT_WIDTH;
+	data.h = MIDFONT_HEIGHT;
+	data.bitmap = (const byte*)&midFont;
+	data.offsetY = yPos;
 
 	// Minutes
-	img.x = 60;
-	drawTickerNum2(&img, div10(timeDate.time.mins), 5, moving2[2]);
-	img.x = 83;
-	drawTickerNum2(&img, mod10(timeDate.time.mins), 9, moving2[3]);
+	data.x = 60;
+	data.val = div10(timeDate.time.mins);
+	data.maxVal = 5;
+	data.moving = moving2[2];
+	drawTickerNum(&data);
+
+	data.x = 83;
+	data.val = mod10(timeDate.time.mins);
+	data.maxVal = 9;
+	data.moving = moving2[3];
+	drawTickerNum(&data);
 
 	// Hours
-	img.x = 1;
-	drawTickerNum2(&img, div10(timeDate.time.hour), 5, moving2[0]);
-	img.x = 24;
-	drawTickerNum2(&img, mod10(timeDate.time.hour), 9, moving2[1]);
+	data.x = 1;
+	data.val = div10(timeDate.time.hour);
+	data.maxVal = 5;
+	data.moving = moving2[0];
+	drawTickerNum(&data);
+
+	data.x = 24;
+	data.val = mod10(timeDate.time.hour);
+	data.maxVal = 9;
+	data.moving = moving2[1];
+	drawTickerNum(&data);
 	
 	// Draw colon for half a second
 	if(RTC_HALFSEC())
-	{
-		img.x = TIME_POS_X + 46 + 2;
-		img.bitmap = colon;
-		img.width = FONT_COLON_WIDTH;
-		img.height = FONT_COLON_HEIGHT;
-		img.offsetY = 0;
-		draw_bitmap_s2(NULL);
-	}
+		draw_bitmap(TIME_POS_X + 46 + 2, TIME_POS_Y, colon, FONT_COLON_WIDTH, FONT_COLON_HEIGHT, NOINVERT, 0);
 	
 	// Draw AM/PM character
 	char tmp[2];
@@ -284,35 +298,25 @@ static display_t ticker()
 	return (moving ? DISPLAY_BUSY : DISPLAY_DONE);
 }
 
-static void drawTickerNum2(image_s* img, byte val, byte maxValue, bool moving)
+static void drawTickerNum(tickerData_t* data)
 {
-	byte arraySize = (img->width * img->height) / 8;
-	byte yPos = img->offsetY;
-	const byte* bitmap = img->bitmap;
+	byte arraySize = (data->w * data->h) / 8;
+	byte yPos = data->offsetY;
+	const byte* bitmap = &data->bitmap[data->val * arraySize];
+	byte x = data->x;
+	byte y = data->y;
 
-	img->bitmap = &bitmap[val * arraySize];
-
-	if(!moving || yPos == 0 || yPos == 255)
-	{
-		img->offsetY = 0;
-		draw_bitmap_s2(&img);
-	}
+	if(!data->moving || yPos == 0 || yPos == 255)
+		draw_bitmap(x, y, bitmap, data->w, data->h, NOINVERT, 0);
 	else
 	{
-		byte prev = val - 1;
+		byte prev = data->val - 1;
 		if(prev == 255)
-			prev = maxValue;
+			prev = data->maxVal;
 
-		img->offsetY = yPos - img->height - TICKER_GAP;
-		draw_bitmap_s2(&img);
-
-		img->offsetY = yPos;
-		img->bitmap = &bitmap[prev * arraySize];
-		draw_bitmap_s2(&img);
+		draw_bitmap(x, y, bitmap, data->w, data->h, NOINVERT, yPos - data->h - TICKER_GAP);
+		draw_bitmap(x, y, &data->bitmap[prev * arraySize], data->w, data->h, NOINVERT, yPos);
 	}	
-	
-	img->offsetY = yPos;
-	img->bitmap = bitmap;
 }
 /*
 static void drawTickerNum(byte x, byte y, byte val, byte maxValue, bool moving, const byte* font, byte w, byte h, byte yPos)
