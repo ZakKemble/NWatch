@@ -32,6 +32,11 @@
 // 2 = Russian
 #define LANGUAGE 0
 
+// OLED Controller chip
+// OLED_CONTROLLER_SSD1306
+// OLED_CONTROLLER_SH1106
+#define OLED_CONTROLLER OLED_CONTROLLER_SSD1306
+
 // Compile options
 #define COMPILE_GAME1 1 // Breakout
 #define COMPILE_GAME2 1 // Car dodge

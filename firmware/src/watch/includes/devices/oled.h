@@ -19,6 +19,9 @@ typedef enum
 #define FRAME_HEIGHT		64
 #define FRAME_BUFFER_SIZE	((FRAME_WIDTH * FRAME_HEIGHT) / 8)
 
+#define OLED_CONTROLLER_SSD1306	0
+#define OLED_CONTROLLER_SH1106	1
+
 extern byte oledBuffer[];
 
 void oled_init(void);

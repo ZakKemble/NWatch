@@ -1,3 +1,7 @@
+2015-04-03:
+	Software:
+	- Added support for SH1106 OLEDs, see OLED_CONTROLLER in config.h
+
 2014-11-15:
 	Software:
 	- Fixed issue for when RTC isn't connected

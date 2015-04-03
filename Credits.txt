@@ -2,3 +2,6 @@ Credits:
 
 "Onatsky Sergei" <Le_Fleurs (-at-) mail (-dot-) ru>
 * Russian translation
+
+"igor futa" <igor.futa (-at-) mail (-dot-) ru>
+* SH1106 OLED support

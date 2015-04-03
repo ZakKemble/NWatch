@@ -43,6 +43,7 @@ static inline bool oled_deselect(void)
 
 byte oledBuffer[FRAME_BUFFER_SIZE];
 
+#if OLED_CONTROLLER == OLED_CONTROLLER_SSD1306
 static const byte oledConfig[] PROGMEM ={
 //	OLED_SETMUX, 63,
 //	OLED_DISPLAY_OFFSET, 0,
@@ -56,8 +57,12 @@ static const byte oledConfig[] PROGMEM ={
 	OLED_MEMMODE, OLED_MEM_HORIZ,
 	OLED_ON
 };
+#else
+static const byte oledConfig[] PROGMEM ={
+	OLED_ON
+};
+#endif
 
-static void resetPosition(void);
 static void sendCmd(byte);
 static void sendCmd2(byte, byte);
 
@@ -89,7 +94,8 @@ void oled_init()
 	oled_flush();
 }
 
-static void resetPosition()
+#if OLED_CONTROLLER == OLED_CONTROLLER_SSD1306
+static void resetPosition(void)
 {
 	CHIPSELECT(MODE_CMD)
 	{
@@ -100,10 +106,11 @@ static void resetPosition()
 		spi_transfer_nr(0x21);
 		spi_transfer_nr(0x00);
 		spi_transfer_nr(0x7F);
-		
+
 		// also set display start line and display offset
 	}
 }
+#endif
 
 static void sendCmd2(byte cmd, byte val)
 {
@@ -124,12 +131,13 @@ static void sendCmd(byte cmd)
 
 void oled_flush()
 {
-	resetPosition();
-
 #if COMPILE_SCREENSHOT
 	screenshot_send();
 #endif
 
+#if OLED_CONTROLLER == OLED_CONTROLLER_SSD1306
+	resetPosition();
+	
 	CHIPSELECT(MODE_DATA)
 	{
 		debugPin_spi(HIGH);
@@ -169,6 +177,45 @@ void oled_flush()
 
 		debugPin_spi(LOW);
 	}
+#else
+
+// Need to make sure this is optimized
+
+	uint16_t buffer = 0;
+	uint16_t start;
+	
+	for(uint8_t i=0;i<8;i++)
+	{
+		start = buffer;
+		buffer += 128;
+		
+		// Need to manually set page and column with SH1106 :/
+		CHIPSELECT(MODE_CMD)
+		{
+			spi_transfer_nr(0xB0 + i); // Set page
+			spi_transfer_nr(0x02); // Set column lower 4 bits
+			spi_transfer_nr(0x10); // Set column higher 4 bits
+		}
+
+		CHIPSELECT(MODE_DATA)
+		{
+			for(uint16_t i=start;i<buffer;i++)
+			{
+				uint8_t next = oledBuffer[i]; // Load next byte
+				oledBuffer[i] = 0x00; // Clear buffer byte
+
+				__builtin_avr_delay_cycles(8);
+
+				SPSR; // Need to read register to clear SPIF
+
+				SPDR = next; // Send byte
+			}
+
+			__builtin_avr_delay_cycles(14);
+			SPSR;
+		}
+	}
+#endif
 }
 
 void oled_power(oled_pwr_t on)
