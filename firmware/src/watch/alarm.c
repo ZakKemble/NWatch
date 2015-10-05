@@ -89,9 +89,7 @@ void alarm_update()
 
 			if(!led_flashing())
 			{
-				static led_t ledFlash = LED_GREEN;
-				ledFlash = (ledFlash == LED_GREEN) ? LED_RED : LED_GREEN;
-				led_flash(ledFlash, 150, 255);
+				led_flash(LED_GREEN, 150, 255);
 			}
 		}
 		else if(!alarmNow)
